@@ -1,0 +1,34 @@
+# Netlify config. Settings here override the values set in the Netlify UI.
+[build]
+  command = "npm run build"
+  publish = "dist/contract-studio/browser"
+
+# Single-page app: unknown paths load index.html (matches nginx.conf).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), geolocation=(), microphone=(self)"
+
+# pdf.js ships ES modules as .mjs.
+[[headers]]
+  for = "/*.mjs"
+  [headers.values]
+    Content-Type = "text/javascript"
+
+# Hashed bundles never change for a given URL.
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
