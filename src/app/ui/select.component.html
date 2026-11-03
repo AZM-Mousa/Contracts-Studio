@@ -1,0 +1,26 @@
+<button #trigger type="button" class="trigger" role="combobox" [id]="id + '-trigger'"
+  [attr.aria-expanded]="open()" [attr.aria-controls]="id + '-list'" aria-haspopup="listbox"
+  [attr.aria-activedescendant]="open() ? id + '-opt-' + active() : null" [attr.aria-label]="label()"
+  (click)="toggle()" (keydown)="onKey($event)">
+  @if (selected(); as s) {
+    @if (s.color) {<span class="dot" [style.background]="s.color"></span>}
+    @if (s.icon) {<cs-icon [name]="s.icon" [size]="16" />}
+    <span class="value">{{ s.label }}</span>
+  } @else {
+    <span class="value placeholder">{{ placeholder() }}</span>
+  }
+  <cs-icon name="down" [size]="16" class="chev" />
+</button>
+@if (open()) {
+  <ul class="list" role="listbox" [id]="id + '-list'" [attr.aria-label]="label()" tabindex="-1">
+    @for (o of options(); track o.value; let i = $index) {
+      <li role="option" [id]="id + '-opt-' + i" [attr.aria-selected]="o.value === value()" [class.active]="i === active()"
+        (pointerdown)="$event.preventDefault()" (click)="pick(o)" (pointermove)="active.set(i)">
+        @if (o.color) {<span class="dot" [style.background]="o.color"></span>}
+        @if (o.icon) {<cs-icon [name]="o.icon" [size]="16" />}
+        <span class="text"><span>{{ o.label }}</span>@if (o.hint) {<small>{{ o.hint }}</small>}</span>
+        @if (o.value === value()) {<cs-icon name="check2" [size]="16" class="tick" />}
+      </li>
+    }
+  </ul>
+}

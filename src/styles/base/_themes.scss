@@ -1,0 +1,57 @@
+// Dark theme and contrast modes.
+:root[data-theme='dark'] {
+  --bg: #0b0f19;
+  --canvas: #070a12;
+  --panel: #111726;
+  --surface: #172033;
+  --chip: #1c2539;
+  --ink: #e8ecf5;
+  --muted: #98a2b8;
+  --line: #222c42;
+  --line-strong: #34405c;
+  --field-bg: rgb(255 255 255 / 0.78);
+  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px -12px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.4), 0 28px 56px -18px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+
+/* Accessibility: contrast modes. */
+:root[data-contrast='high'] {
+  --ink: #000;
+  --muted: #1f2937;
+  --line: #111827;
+  --line-strong: #000;
+  --panel: #fff;
+  --surface: #fff;
+  --bg: #fff;
+  --focus: #000;
+}
+
+:root[data-theme='dark'][data-contrast='high'] {
+  --ink: #fff;
+  --muted: #e5e7eb;
+  --line: #f9fafb;
+  --line-strong: #fff;
+  --panel: #000;
+  --surface: #000;
+  --bg: #000;
+  --canvas: #000;
+  --focus: #fff;
+}
+
+:root[data-contrast='yellow'] {
+  --accent: #ffea00;
+  --bg: #000;
+  --canvas: #000;
+  --panel: #000;
+  --surface: #000;
+  --chip: #1a1a00;
+  --ink: #ffea00;
+  --muted: #fff59d;
+  --line: #ffea00;
+  --line-strong: #ffea00;
+  --focus: #fff;
+  color-scheme: dark;
+}
+
+:root[data-contrast='grayscale'] body { filter: grayscale(1); }

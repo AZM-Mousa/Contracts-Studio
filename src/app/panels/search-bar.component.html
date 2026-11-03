@@ -1,0 +1,79 @@
+<div class="bar">
+  <cs-icon name="search" [size]="16" class="lead" />
+  <input #input type="search" [value]="engine.find().query" [placeholder]="i18n.t('searchPlaceholder')" [attr.aria-label]="i18n.t('search')"
+    (input)="onInput($event)" (keydown.enter)="step($event, false)" (keydown.shift.enter)="step($event, true)" (keydown.escape)="close()"
+    (focus)="showRecent.set(true)" aria-describedby="search-count" />
+  @if (voiceSupported) {
+    <button type="button" class="icon-btn mic" [class.listening]="listening()" (click)="toggleVoice()"
+      [attr.aria-pressed]="listening()" [attr.aria-label]="i18n.t(listening() ? 'voiceStop' : 'voiceSearch')" [title]="i18n.t('voiceSearch')">
+      <cs-icon name="mic" [size]="17" />
+    </button>
+  }
+  <span class="count" id="search-count" aria-live="polite">
+    @switch (engine.find().state) {
+      @case ('notFound') { {{ i18n.t('noMatches') }} }
+      @case ('pending') { … }
+      @default { @if (engine.find().total) { {{ i18n.t('matchOf', { current: engine.find().current, total: engine.find().total }) }} } }
+    }
+  </span>
+  <button type="button" class="icon-btn" (click)="step($event, true)" [disabled]="!engine.find().total" [attr.aria-label]="i18n.t('prevMatch')"><cs-icon name="up" /></button>
+  <button type="button" class="icon-btn" (click)="step($event, false)" [disabled]="!engine.find().total" [attr.aria-label]="i18n.t('nextMatch')"><cs-icon name="down" /></button>
+  <button type="button" class="icon-btn" (click)="close()" [attr.aria-label]="i18n.t('close')"><cs-icon name="x" /></button>
+  @if (engine.findProgress() > 0 && engine.findProgress() < 1) {
+    <span class="progress" [style.width.%]="engine.findProgress() * 100" aria-hidden="true"></span>
+  }
+</div>
+
+<div class="options" role="group" [attr.aria-label]="i18n.t('searchOptions')">
+  <button type="button" class="opt" [attr.aria-pressed]="engine.findOptions().caseSensitive" (click)="toggle('caseSensitive')" [title]="i18n.t('matchCase')">
+    <span class="glyph">Aa</span>{{ i18n.t('matchCase') }}
+  </button>
+  <button type="button" class="opt" [attr.aria-pressed]="engine.findOptions().entireWord" (click)="toggle('entireWord')" [title]="i18n.t('wholeWord')">
+    <span class="glyph"><u>ab</u></span>{{ i18n.t('wholeWord') }}
+  </button>
+  <button type="button" class="opt" [attr.aria-pressed]="engine.findOptions().matchDiacritics" (click)="toggle('matchDiacritics')" [title]="i18n.t('matchDiacritics')">
+    <span class="glyph">عَ</span>{{ i18n.t('matchDiacritics') }}
+  </button>
+</div>
+
+@if (showRecent() && !engine.find().query && recent().length) {
+  <div class="panel">
+    <h4>{{ i18n.t('recentSearches') }}</h4>
+    <div class="chips">
+      @for (r of recent(); track r) {
+        <button type="button" class="chip" (click)="useRecent(r)"><cs-icon name="search" [size]="13" />{{ r }}</button>
+      }
+    </div>
+  </div>
+}
+
+@if (engine.pageMatches().length || fieldHits().length) {
+  <div class="panel results">
+    @if (engine.pageMatches().length) {
+      <h4>{{ i18n.t('inPages', { n: engine.pageMatches().length }) }}</h4>
+      <div class="pages">
+        @for (m of shownPages(); track m.page) {
+          <button type="button" class="page-hit" [class.on]="m.page === engine.currentPage()" (click)="engine.goToPage(m.page)"
+            [attr.aria-label]="i18n.t('page') + ' ' + m.page + ', ' + m.count">
+            <span>{{ m.page }}</span><b>{{ m.count }}</b>
+          </button>
+        }
+        @if (engine.pageMatches().length > shownPages().length) {
+          <button type="button" class="page-hit more" (click)="showAll.set(true)">+{{ engine.pageMatches().length - shownPages().length }}</button>
+        }
+      </div>
+    }
+    @if (fieldHits().length) {
+      <h4>{{ i18n.t('inFields', { n: fieldHits().length }) }}</h4>
+      <ul class="field-hits">
+        @for (f of fieldHits().slice(0, 6); track f.id) {
+          <li><button type="button" (click)="goToField(f)">
+            <span class="dot" [style.background]="signerColor(f)"></span>
+            <span class="what">{{ f.label || i18n.field(f.type) }}</span>
+            <span class="where">{{ i18n.t('page') }} {{ f.page }}</span>
+          </button></li>
+        }
+      </ul>
+    }
+  </div>
+}

@@ -1,0 +1,12 @@
+@for (field of visible(); track field.id) {
+  <cs-field [field]="field" [selected]="selection().has(field.id)" [single]="selection().size === 1"
+    [style.left.%]="geometry(field).x * 100" [style.top.%]="geometry(field).y * 100"
+    [style.width.%]="geometry(field).width * 100" [style.height.%]="geometry(field).height * 100"
+    [class.is-dragging]="preview()?.ids?.has(field.id)" [class.is-blocked]="preview()?.blocked && preview()?.ids?.has(field.id)" />
+}
+@for (g of guides(); track $index) {
+  <span class="guide" [class.v]="g.axis === 'v'" [style.left.%]="g.axis === 'v' ? g.pos * 100 : null" [style.top.%]="g.axis === 'h' ? g.pos * 100 : null"></span>
+}
+@if (marquee(); as m) {
+  <span class="marquee" [style.left.%]="m.x * 100" [style.top.%]="m.y * 100" [style.width.%]="m.width * 100" [style.height.%]="m.height * 100"></span>
+}

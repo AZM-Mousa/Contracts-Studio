@@ -1,0 +1,20 @@
+<div #container class="viewer-container" tabindex="0" [attr.aria-label]="i18n.t('pages')" role="region"
+  (keydown)="onKeyDown($event)" (wheel)="onWheel($event)">
+  <div #viewer class="pdfViewer"></div>
+</div>
+@if (showRulers()) {
+  <cs-rulers [container]="container" />
+}
+@if (!engine.ready() && !engine.loading()) {
+  <cs-hero-scene />
+  <div class="empty">
+    <p>{{ i18n.t('empty') }}</p>
+    <ng-content />
+  </div>
+}
+@if (engine.loading()) {
+  <div class="loading"><cs-loader [size]="84" /></div>
+}
+@if (dropping()) {
+  <div class="drop-hint"><cs-icon name="upload" [size]="28" />{{ i18n.t('dropHere') }}</div>
+}

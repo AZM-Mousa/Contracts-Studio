@@ -1,0 +1,47 @@
+<div class="visibility" role="group" [attr.aria-label]="i18n.t('signer')">
+  @for (s of store.signers(); track s.id) {
+    @let hidden = state.hiddenSigners().has(s.id);
+    <button type="button" class="eye" [style.--signer]="s.color" [attr.aria-pressed]="!hidden"
+      [attr.aria-label]="i18n.t(hidden ? 'showSigner' : 'hideSigner', { name: s.name })" [title]="i18n.t(hidden ? 'showSigner' : 'hideSigner', { name: s.name })"
+      (click)="toggleSigner(s.id)">
+      <span class="dot"></span>{{ s.name }}<cs-icon name="eye" [size]="15" />
+    </button>
+  }
+</div>
+
+<div class="filters">
+  <label class="search">
+    <cs-icon name="search" [size]="16" />
+    <input type="search" [value]="query()" (input)="setQuery($event)" [placeholder]="i18n.t('filterFields')" [attr.aria-label]="i18n.t('filterFields')" />
+  </label>
+  <div class="two">
+    <cs-select [options]="signerOptions()" [value]="signer()" (valueChange)="setSigner($event)" [label]="i18n.t('signer')" />
+    <cs-select [options]="typeOptions()" [value]="type()" (valueChange)="setType($event)" [label]="i18n.t('type')" />
+  </div>
+  <div class="bar">
+    <label class="switch"><input type="checkbox" role="switch" [checked]="unfilled()" (change)="toggleUnfilled()" /><span></span>{{ i18n.t('filledOnly') }}</label>
+    <button type="button" class="link" (click)="selectShown()" [disabled]="!filtered().length">{{ i18n.t('selectShown') }}</button>
+  </div>
+  <p class="count" aria-live="polite">{{ i18n.t('fieldsCount', { n: filtered().length.toLocaleString() }) }}</p>
+</div>
+
+<div #list class="list" role="list" (scroll)="onScroll($event)" [attr.aria-label]="i18n.t('fieldsList')">
+  <div class="spacer" [style.height.px]="filtered().length * ROW">
+    @for (f of window().rows; track f.id; let i = $index) {
+      @let index = window().start + i;
+      <button type="button" role="listitem" class="row" [style.top.px]="index * ROW" [style.--signer]="color(f)" [attr.data-index]="index"
+        [class.selected]="store.selection().has(f.id)" [class.dim]="state.hiddenSigners().has(f.signerId)"
+        (click)="open($event, f)" (keydown)="onKey($event, index)" [attr.aria-current]="store.selection().has(f.id) || null">
+        <span class="ico"><cs-icon [name]="meta[f.type].icon" [size]="16" /></span>
+        <span class="text">
+          <b>{{ title(f) }}@if (f.required) {<i class="req" aria-hidden="true">*</i>}</b>
+          <small>{{ value(f) || i18n.field(f.type) }}</small>
+        </span>
+        @if (filled(f)) {<cs-icon class="ok" name="check" [size]="15" />}
+        <span class="page">{{ i18n.t('pageN', { n: f.page }) }}</span>
+      </button>
+    } @empty {
+      <p class="empty">{{ i18n.t('noFieldsMatch') }}</p>
+    }
+  </div>
+</div>

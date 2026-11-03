@@ -1,0 +1,32 @@
+* { box-sizing: border-box; }
+
+/*
+ * The app is a fixed frame: only its panels scroll. `clip` (not `hidden`) also stops
+ * focus() and scrollIntoView() from scrolling the page itself out of place.
+ */
+html,
+body {
+  height: 100%;
+  max-width: 100%;
+  overflow: clip;
+  overscroll-behavior: none;
+}
+
+/*
+ * No browser pinch-zoom of the whole app: it only stretches the drawn pages (blurry).
+ * The document viewer zooms itself and redraws sharp; text size is in the accessibility panel.
+ */
+html {
+  font-size: calc(15px * var(--font-scale));
+  touch-action: pan-x pan-y;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1rem/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font-size: inherit; }

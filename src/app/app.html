@@ -1,0 +1,201 @@
+<a class="skip" href="#document">{{ i18n.t('pages') }}</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><cs-icon name="signature" [size]="18" /></span>
+    <div class="title">
+      <strong>{{ i18n.t('appName') }}</strong>
+      @if (engine.fileName()) {<span class="file">{{ engine.fileName() }}</span>}
+    </div>
+  </div>
+
+  <nav class="views" [attr.aria-label]="i18n.t('viewEditor')">
+    @for (v of views; track v.id) {
+      <button type="button" [attr.aria-current]="state.view() === v.id ? 'page' : null" (click)="setView(v.id)" [title]="i18n.t(v.label)">
+        <cs-icon [name]="v.icon" [size]="16" /><span>{{ i18n.t(v.label) }}</span>
+        @if (v.id === 'journey' && envelope.status() === 'sent') {<i class="live" aria-hidden="true"></i>}
+      </button>
+    }
+  </nav>
+
+  @if (state.view() === 'studio') {
+  <div class="modes" role="radiogroup" [attr.aria-label]="i18n.t('modeEdit')">
+    @for (m of modes; track m.id) {
+      <button type="button" role="radio" [attr.aria-checked]="state.mode() === m.id" (click)="setMode(m.id)">
+        <cs-icon [name]="m.icon" [size]="16" /><span>{{ i18n.t(m.label) }}</span>
+      </button>
+    }
+  </div>
+  }
+
+  <div class="actions">
+    <label class="btn ghost file-btn">
+      <cs-icon name="upload" [size]="16" /><span class="hide-sm">{{ i18n.t('open') }}</span>
+      <input type="file" accept="application/pdf" (change)="openFile($event)" />
+    </label>
+    <div class="menu-wrap">
+      <button type="button" class="btn ghost" (click)="sampleOpen.set(!sampleOpen())" [attr.aria-expanded]="sampleOpen()">
+        <cs-icon name="sparkles" [size]="16" /><span class="hide-sm">{{ i18n.t('sample') }}</span>
+      </button>
+      @if (sampleOpen()) {
+        <div class="menu" role="menu">
+          <button type="button" role="menuitem" (click)="generateAllFields()"><cs-icon name="layers" [size]="16" />{{ i18n.t('sampleAllFields') }}</button>
+          @for (n of sampleSizes; track n) {
+            <button type="button" role="menuitem" (click)="generate(n)"><cs-icon name="file" [size]="16" />{{ i18n.t('samplePages', { n }) }}</button>
+          }
+          <button type="button" role="menuitem" class="stress" (click)="generate(5000, true)"><cs-icon name="sparkles" [size]="16" />{{ i18n.t('sampleDense') }}</button>
+        </div>
+      }
+    </div>
+    <div class="menu-wrap">
+      <button type="button" class="btn primary" (click)="exportOpen.set(!exportOpen())" [disabled]="!engine.ready()" [attr.aria-expanded]="exportOpen()">
+        <cs-icon name="download" [size]="16" /><span class="hide-sm">{{ i18n.t('export') }}</span>
+      </button>
+      @if (exportOpen()) {
+        <div class="menu end" role="menu">
+          <button type="button" role="menuitem" (click)="exportAs(ExportKind.Pdf)"><cs-icon name="file" [size]="16" />{{ i18n.t('exportPdf') }}</button>
+          <button type="button" role="menuitem" (click)="exportAs(ExportKind.Json)"><cs-icon name="layers" [size]="16" />{{ i18n.t('exportJson') }}</button>
+        </div>
+      }
+    </div>
+    <button type="button" class="icon-btn" (click)="state.settingsOpen.set(true)" [attr.aria-label]="i18n.t('settings')" [class.dot]="prefs.hasA11y()">
+      <cs-icon name="accessibility" />
+    </button>
+  </div>
+</header>
+
+@if (state.view() === 'send') {
+  <cs-send-flow class="flow-host" />
+} @else if (state.view() === 'journey') {
+  <cs-journey-flow class="flow-host" />
+}
+
+<nav class="toolbar" [attr.aria-label]="i18n.t('documentTools')" [class.offstage]="state.view() !== 'studio'">
+  <div class="group">
+    <button type="button" class="icon-btn hide-sm" (click)="state.thumbnailsOpen.set(!state.thumbnailsOpen())" [attr.aria-pressed]="state.thumbnailsOpen()" [attr.aria-label]="i18n.t('thumbnails')"><cs-icon name="sidebar" /></button>
+    <span class="sep hide-sm"></span>
+    <button type="button" class="icon-btn" (click)="store.undo()" [disabled]="!store.canUndo()" [attr.aria-label]="i18n.t('undo')" [title]="i18n.t('undo')"><cs-icon name="undo" /></button>
+    <button type="button" class="icon-btn" (click)="store.redo()" [disabled]="!store.canRedo()" [attr.aria-label]="i18n.t('redo')" [title]="i18n.t('redo')"><cs-icon name="redo" /></button>
+    @if (state.editing()) {
+      <span class="sep hide-xs"></span>
+      <button type="button" (click)="state.grid.set(!state.grid())" class="icon-btn hide-xs" [attr.aria-pressed]="state.grid()" [attr.aria-label]="i18n.t('grid')" [title]="i18n.t('grid')"><cs-icon name="grid" /></button>
+      <button type="button" class="icon-btn hide-xs" (click)="state.rulers.set(!state.rulers())" [attr.aria-pressed]="state.rulers()" [attr.aria-label]="i18n.t('rulers')" [title]="i18n.t('rulers')"><cs-icon name="ruler" /></button>
+      <button type="button" class="icon-btn hide-xs" (click)="state.snapping.set(!state.snapping())" [attr.aria-pressed]="state.snapping()" [attr.aria-label]="i18n.t('snapping')" [title]="i18n.t('snapping')"><cs-icon name="magnet" /></button>
+    }
+  </div>
+
+  <div class="group pager">
+    <button type="button" class="icon-btn hide-xs" (click)="engine.goToPage(engine.currentPage() - 1)" [disabled]="engine.currentPage() <= 1" [attr.aria-label]="i18n.t('page')"><cs-icon name="up" /></button>
+    <input class="page-input" type="text" inputmode="numeric" [value]="engine.currentPage()" (change)="goToPage($event)" [attr.aria-label]="i18n.t('page')" />
+    <span class="of">{{ i18n.t('ofPages', { n: engine.pagesCount() }) }}</span>
+    <button type="button" class="icon-btn hide-xs" (click)="engine.goToPage(engine.currentPage() + 1)" [disabled]="engine.currentPage() >= engine.pagesCount()" [attr.aria-label]="i18n.t('page')"><cs-icon name="down" /></button>
+  </div>
+
+  <div class="group">
+    <button type="button" class="icon-btn" (click)="engine.zoomOut()" [attr.aria-label]="i18n.t('zoomOut')"><cs-icon name="minus" /></button>
+    <button type="button" class="zoom" (click)="engine.setScale('page-width')" [title]="i18n.t('fitWidth')">{{ zoomPercent() }}%</button>
+    <button type="button" class="icon-btn" (click)="engine.zoomIn()" [attr.aria-label]="i18n.t('zoomIn')"><cs-icon name="plus" /></button>
+    <button type="button" class="icon-btn hide-sm" (click)="engine.setScale('page-fit')" [attr.aria-label]="i18n.t('fitPage')" [title]="i18n.t('fitPage')"><cs-icon name="fit" /></button>
+    <span class="sep"></span>
+    <button type="button" class="icon-btn" (click)="searchOpen.set(!searchOpen())" [attr.aria-pressed]="searchOpen()" [disabled]="!engine.ready()" [attr.aria-label]="i18n.t('search')"><cs-icon name="search" /></button>
+    <button type="button" class="icon-btn hide-sm" (click)="toggleFullscreen()" [attr.aria-label]="i18n.t('fullscreen')"><cs-icon name="expand" /></button>
+  </div>
+</nav>
+
+<main class="workspace" [class.offstage]="state.view() !== 'studio'">
+  @if (state.thumbnailsOpen()) {
+    <aside class="rail" [attr.aria-label]="i18n.t('thumbnails')">
+      <cs-thumbnails [visible]="state.thumbnailsOpen()" />
+    </aside>
+  }
+
+  <section class="stage" id="document">
+    @if (searchOpen()) {
+      <cs-search-bar class="search" (closed)="searchOpen.set(false)" />
+    }
+    <cs-viewer (fileDropped)="loadFile($event)" (deleteRequested)="removeSelected()">
+      <div class="empty-actions">
+        <button type="button" class="btn primary" (click)="generate(1500)"><cs-icon name="sparkles" [size]="16" />{{ i18n.t('samplePages', { n: 1500 }) }}</button>
+        <button type="button" class="btn ghost" (click)="generate(20)">{{ i18n.t('samplePages', { n: 20 }) }}</button>
+        <button type="button" class="btn ghost" (click)="generateAllFields()">{{ i18n.t('sampleAllFields') }}</button>
+      </div>
+    </cs-viewer>
+
+    @if (generating(); as n) {
+      <div class="generating"><cs-loader [label]="i18n.t('generating', { n })" /></div>
+    }
+    @if (exporting()) {
+      <div class="generating"><cs-loader [label]="i18n.t('exportingPdf')" /></div>
+    }
+
+    @if (engine.ready()) {
+      <div class="floating">
+        @if (state.filling()) {
+          <cs-signing-bar (finished)="finishSigning()" />
+        } @else {
+          <div class="chip-bar">
+            <button type="button" class="icon-btn" (click)="nav.previous()" [attr.aria-label]="i18n.t('prevField')" [title]="i18n.t('prevField')"><cs-icon name="up" /></button>
+            <span class="stat">{{ i18n.t('stats', { pages: engine.pagesCount(), fields: store.fields().length, mounted: state.mountedFields() }) }}</span>
+            <button type="button" class="icon-btn" (click)="nav.next()" [attr.aria-label]="i18n.t('nextField')" [title]="i18n.t('nextField')"><cs-icon name="down" /></button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  @if (state.editing()) {
+    <aside class="side" [attr.aria-label]="i18n.t('palette')">
+      <div class="side-tabs" role="tablist">
+        <button type="button" role="tab" [attr.aria-selected]="sideTab() === 'palette'" (click)="sideTab.set(Panel.Palette)">{{ i18n.t('palette') }}</button>
+        <button type="button" role="tab" [attr.aria-selected]="sideTab() === 'inspector'" (click)="sideTab.set(Panel.Inspector)">
+          {{ i18n.t('inspector') }}@if (store.selection().size) {<span class="count">{{ store.selection().size }}</span>}
+        </button>
+        <button type="button" role="tab" [attr.aria-selected]="sideTab() === 'fields'" (click)="sideTab.set(Panel.Fields)">{{ i18n.t('fields') }}</button>
+      </div>
+      <div class="side-body">
+        @switch (sideTab()) {
+          @case (Panel.Palette) {<cs-palette />}
+          @case (Panel.Fields) {<cs-fields-list />}
+          @default {<cs-inspector />}
+        }
+      </div>
+    </aside>
+  }
+</main>
+
+@if (state.editing()) {
+  <nav class="mobile-dock" [attr.aria-label]="i18n.t('palette')">
+    <button type="button" (click)="state.sheet.set(Panel.Palette)"><cs-icon name="plus" /><span>{{ i18n.t('palette') }}</span></button>
+    <button type="button" (click)="state.sheet.set(Panel.Inspector)" [disabled]="!store.selection().size"><cs-icon name="settings" /><span>{{ i18n.t('inspector') }}</span></button>
+    <button type="button" (click)="state.sheet.set(Panel.Fields)"><cs-icon name="layers" /><span>{{ i18n.t('fields') }}</span></button>
+    <button type="button" (click)="store.duplicate(store.selection())" [disabled]="!store.selection().size"><cs-icon name="copy" /><span>{{ i18n.t('duplicate') }}</span></button>
+    <button type="button" (click)="removeSelected()" [disabled]="!store.selection().size"><cs-icon name="trash" /><span>{{ i18n.t('delete') }}</span></button>
+  </nav>
+  @if (state.sheet() !== 'none') {
+    <div class="sheet-backdrop" (click)="state.sheet.set(Panel.None)"></div>
+    <div class="bottom-sheet" role="dialog" aria-modal="true">
+      <span class="grabber" aria-hidden="true"></span>
+      @switch (state.sheet()) {
+        @case (Panel.Palette) {<cs-palette />}
+        @case (Panel.Fields) {<cs-fields-list />}
+        @default {<cs-inspector />}
+      }
+    </div>
+  }
+}
+
+<cs-context-menu (deleteRequested)="removeSelected()" />
+<cs-signature-dialog />
+<cs-settings-drawer />
+<cs-alert-dialog />
+
+@if (state.painterSource()) {
+  <div class="painter-pill" role="status">
+    <cs-icon name="palette" [size]="16" />{{ i18n.t('painterOn') }}
+    <button type="button" (click)="state.painterSource.set(null)">{{ i18n.t('painterStop') }}</button>
+  </div>
+}
+
+@if (state.toast(); as toast) {
+  <div class="toast" role="status" aria-live="polite">{{ toast.text }}</div>
+}

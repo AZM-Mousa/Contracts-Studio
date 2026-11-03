@@ -1,0 +1,176 @@
+<main class="flow" [attr.aria-label]="i18n.t('fContractProcess')">
+  <div class="flow-head">
+    <div>
+      <span class="eyebrow"><cs-icon name="signature" [size]="15" />{{ i18n.t('fSignerSide') }}</span>
+      <h1>{{ i18n.t('fReviewAndApprove') }}</h1>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="btn ghost" (click)="back(View.Send)"><cs-icon name="upload" [size]="16" />{{ i18n.t('fUploadProcess') }}</button>
+      <button type="button" class="btn ghost" (click)="back(View.Studio)"><cs-icon name="pen" [size]="16" />{{ i18n.t('fEditor') }}</button>
+    </div>
+  </div>
+
+  @if (env.status() === 'draft') {
+    <section class="card empty-flow">
+      <cs-icon name="mail" [size]="30" />
+      <p>{{ i18n.t('fNothingHasBeenSentYet') }}</p>
+    </section>
+  } @else {
+    <div class="journey">
+      <aside class="card who-list">
+        <h3>{{ i18n.t('fRecipients') }}</h3>
+        @for (p of env.participants(); track p.id; let i = $index) {
+          <button type="button" class="person-btn" [class.on]="person()?.id === p.id" [style.--signer]="p.color" (click)="pick(p.id)"
+            [disabled]="p.status === 'waiting'" [attr.aria-pressed]="person()?.id === p.id">
+            <span class="avatar">{{ p.name.slice(0, 1) }}</span>
+            <span class="who"><strong>{{ p.name }}</strong><small>{{ p.status === 'waiting' ? i18n.t('fWaitingForTurn') : channel(p.verification) }}</small></span>
+            <span class="state" [class]="'state ' + p.status"></span>
+          </button>
+        }
+      </aside>
+
+      @if (person(); as p) {
+        <section class="card step-body" [style.--signer]="p.color">
+          <ol class="mini-steps">
+            @for (s of stages(); track s.id) {
+              <li [class.done]="$index < stageIndex()" [class.current]="s.id === stage()">{{ s.label }}</li>
+            }
+          </ol>
+
+          @switch (stage()) {
+            @case ('invite') {
+              <div class="invite">
+                <div class="mail">
+                  <div class="mail-head">
+                    <span class="mail-logo"><cs-icon name="signature" [size]="16" /></span>
+                    <div><strong>{{ i18n.t('fContractStudio') }}</strong><small>{{ i18n.t('fTo') }} {{ p.email }}</small></div>
+                  </div>
+                  <h3>{{ i18n.t('fYouAreInvitedToSign') }} “{{ env.settings().title }}”</h3>
+                  <p>{{ env.settings().message }}</p>
+                  <dl>
+                    <div><dt>{{ i18n.t('fReference') }}</dt><dd>{{ env.settings().reference }}</dd></div>
+                    <div><dt>{{ i18n.t('fRespondWithin') }}</dt><dd>{{ p.timeLimitHours }} {{ i18n.t('fHours') }}</dd></div>
+                    <div><dt>{{ i18n.t('fIdentityCheck') }}</dt><dd>{{ channel(p.verification) }}</dd></div>
+                  </dl>
+                  <button type="button" class="btn primary" (click)="open()">{{ i18n.t('fReviewDocument') }}</button>
+                </div>
+              </div>
+            }
+
+            @case ('verify') {
+              @if (p.verification === 'nafath') {
+                <div class="nafath">
+                  <span class="nafath-logo">{{ i18n.t('fNafath') }}</span>
+                  <p>{{ i18n.t('fOpenTheNafathAppAnd') }}</p>
+                  <div class="big-number" aria-live="polite">{{ nafathNumber() }}</div>
+                  <p class="muted">{{ nafathSeconds() ? i18n.t('fExpiresIn', { n: nafathSeconds() }) : i18n.t('fTheRequestExpired') }}</p>
+                  @if (waiting()) {
+                    <cs-loader [size]="70" [label]="i18n.t('fWaitingForNafath')" />
+                  } @else if (nafathSeconds()) {
+                    <div class="phone" aria-label="Nafath app (demo)">
+                      <span class="phone-title">{{ i18n.t('fNafathAppDemo') }}</span>
+                      <div class="choices">
+                        @for (n of nafathChoices(); track n) {
+                          <button type="button" (click)="chooseInApp(n)">{{ n }}</button>
+                        }
+                      </div>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn ghost" (click)="restartNafath()">{{ i18n.t('fSendANewRequest') }}</button>
+                  }
+                </div>
+              } @else if (p.verification === 'authenticator') {
+                <div class="otp">
+                  <h3>{{ i18n.t('fEnterTheCodeFromYour') }}</h3>
+                  <p class="muted">{{ i18n.t('fDemoCode') }} <code>{{ demoCode }}</code></p>
+                  <div class="boxes" dir="ltr" (paste)="pasteOtp($event)">
+                    @for (i of digits; track i) {
+                      <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" [attr.aria-label]="'digit ' + (i + 1)" (input)="typeOtp($event, i)" (keydown.backspace)="otpBack($event)" [class.error]="otpError()" />
+                    }
+                  </div>
+                  @if (otpError()) {<p class="err" role="alert">{{ i18n.t('fThatCodeIsnTRight') }}</p>}
+                </div>
+              } @else {
+                <div class="otp">
+                  <h3>{{ i18n.t('fEnterTheCodeWeSent') }}</h3>
+                  <p class="muted">{{ channel(p.verification) }} → <span dir="ltr">{{ p.verification === 'email' ? p.email : p.mobile }}</span> · {{ i18n.t('fDemoCode') }} <code>{{ demoCode }}</code></p>
+                  <div class="boxes" dir="ltr" (paste)="pasteOtp($event)">
+                    @for (i of digits; track i) {
+                      <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" [attr.aria-label]="'digit ' + (i + 1)" (input)="typeOtp($event, i)" (keydown.backspace)="otpBack($event)" [class.error]="otpError()" />
+                    }
+                  </div>
+                  @if (otpError()) {<p class="err" role="alert">{{ i18n.t('fThatCodeIsnTRight') }}</p>}
+                  <button type="button" class="btn ghost" (click)="resend()">{{ i18n.t('fResendCode') }}</button>
+                </div>
+              }
+            }
+
+            @case ('terms') {
+              <h3>{{ i18n.t('fTermsAndConditions') }}</h3>
+              <div class="terms" tabindex="0" (scroll)="onTermsScroll($event)" [attr.aria-label]="i18n.t('fTermsAndConditions')">
+                @for (n of termNumbers; track n) {
+                  <p><strong>{{ n }}.</strong> {{ i18n.t('fElectronicSignaturesOnThisPlatform') }}</p>
+                }
+              </div>
+              @if (!termsRead()) {<p class="muted">{{ i18n.t('fScrollToTheEndTo') }}</p>}
+              <label class="check"><input type="checkbox" [disabled]="!termsRead()" [checked]="termsAccepted()" (change)="termsAccepted.set($any($event.target).checked)" />
+                {{ i18n.t('fIHaveReadAndAccept') }}</label>
+              <div class="step-foot">
+                <button type="button" class="btn ghost" (click)="decline()">{{ i18n.t('fDecline') }}</button>
+                <button type="button" class="btn primary" [disabled]="!termsAccepted()" (click)="acceptTerms()">{{ i18n.t('fAccept') }}</button>
+              </div>
+            }
+
+            @case ('sign') {
+              <div class="sign-stage">
+                <div class="doc-card">
+                  <span class="doc-icon"><cs-icon name="file" [size]="22" /></span>
+                  <div>
+                    <strong>{{ env.settings().title }}</strong>
+                    <span>{{ engine.pagesCount() }} {{ i18n.t('fPages') }} · {{ progress().filled }} / {{ progress().total }} {{ i18n.t('fFieldsFilled') }}</span>
+                  </div>
+                </div>
+                <div class="progress"><span [style.width.%]="progress().total ? (progress().filled / progress().total) * 100 : 100"></span></div>
+                <button type="button" class="btn primary big" (click)="fillDocument()"><cs-icon name="pen" [size]="17" />
+                  {{ p.role === 'approver' ? i18n.t('fReviewTheDocument') : i18n.t('fFillAndSign') }}</button>
+                <div class="decision">
+                  <button type="button" class="btn primary" (click)="approve()"><cs-icon name="check2" [size]="16" />{{ p.role === 'approver' ? i18n.t('fApprove') : i18n.t('fSignAndSend') }}</button>
+                  <button type="button" class="btn danger" (click)="decline()">{{ i18n.t('fDecline') }}</button>
+                  @if (p.allowDelegation) {
+                    <button type="button" class="btn ghost" (click)="delegating.set(!delegating())">{{ i18n.t('fDelegate') }}</button>
+                  }
+                </div>
+                @if (delegating()) {
+                  <form #form class="delegate" (submit)="$event.preventDefault(); delegate(form)">
+                    <h4>{{ i18n.t('fDelegateToSomeoneElse') }}</h4>
+                    <label class="row"><span class="lbl">{{ i18n.t('fName') }} *</span><input name="name" type="text" required /></label>
+                    <label class="row"><span class="lbl">{{ i18n.t('fEmail') }} *</span><input name="email" type="email" required dir="ltr" /></label>
+                    <label class="row"><span class="lbl">{{ i18n.t('fMessage') }}</span><input name="note" type="text" /></label>
+                    <label class="check"><input name="ack" type="checkbox" required />{{ i18n.t('fIConfirmThisPersonMay') }}</label>
+                    <button type="submit" class="btn primary">{{ i18n.t('fDelegate') }}</button>
+                  </form>
+                }
+              </div>
+            }
+
+            @case ('done') {
+              <div class="certificate">
+                <div class="seal" [class.rejected]="p.status === 'rejected'"><cs-icon [name]="p.status === 'rejected' ? 'x' : 'check2'" [size]="30" /></div>
+                <h3>{{ p.status === 'rejected' ? i18n.t('fDeclined') : p.status === 'approved' ? i18n.t('fApproved') : i18n.t('fSigned') }}</h3>
+                <p class="muted">{{ p.name }} · {{ channel(p.verification) }}</p>
+                @if (p.reason && p.status === 'rejected') {<blockquote>“{{ p.reason }}”</blockquote>}
+                @if (env.status() === 'completed') {
+                  <p>{{ i18n.t('fEveryoneHasFinishedTheSigned') }}</p>
+                  <button type="button" class="btn primary" (click)="download()"><cs-icon name="download" [size]="16" />{{ i18n.t('fDownloadSignedPdf') }}</button>
+                } @else if (env.current()[0]; as next) {
+                  <button type="button" class="btn ghost" (click)="pick(next.id)">{{ i18n.t('fContinueAs') }} {{ next.name }}</button>
+                }
+              </div>
+            }
+          }
+        </section>
+      }
+      <cs-audit-trail class="card" />
+    </div>
+  }
+</main>

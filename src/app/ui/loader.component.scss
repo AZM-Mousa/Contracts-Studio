@@ -1,0 +1,20 @@
+@use 'abstracts' as *;
+
+:host { display: inline-grid; justify-items: center; gap: 12px; color: var(--ink); }
+.sheet { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+.sheet.back { fill: color-mix(in srgb, var(--accent) 10%, var(--surface)); transform-origin: 60px 60px; animation: sway 2.4s ease-in-out infinite; }
+.line { stroke: var(--line-strong); stroke-width: 3; stroke-linecap: round; }
+.l1 { animation: fade 2.4s ease-in-out infinite; }
+.l2 { animation: fade 2.4s 0.15s ease-in-out infinite; }
+.l3 { animation: fade 2.4s 0.3s ease-in-out infinite; }
+.sig {
+  fill: none; stroke: url(#cs-loader-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 90; stroke-dashoffset: 90; animation: write 2.4s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+/* The pen follows the signature from start to end. */
+.pen { offset-path: path('M30 84c6-2 8-14 13-14 4 0 0 11 5 11 4 0 4-6 8-6 3 0 4 4 9 4 4 0 6-3 10-3'); offset-rotate: 0deg; animation: follow 2.4s cubic-bezier(0.6, 0, 0.3, 1) infinite; }
+.text { font-size: 14px; font-weight: 600; color: var(--muted); }
+@keyframes write { 0% { stroke-dashoffset: 90; } 70%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes follow { 0% { offset-distance: 0%; } 70%, 100% { offset-distance: 100%; } }
+@keyframes sway { 50% { transform: rotate(4deg); } }
+@keyframes fade { 50% { opacity: 0.45; } }

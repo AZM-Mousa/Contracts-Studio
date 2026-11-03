@@ -1,0 +1,112 @@
+<dialog #dialog class="drawer" (close)="state.settingsOpen.set(false)" aria-labelledby="settings-title">
+  <header>
+    <h2 id="settings-title">{{ i18n.t('settings') }}</h2>
+    <button type="button" class="icon-btn" (click)="state.settingsOpen.set(false)" [attr.aria-label]="i18n.t('close')"><cs-icon name="x" /></button>
+  </header>
+  <div class="body">
+    <section>
+      <h3>{{ i18n.t('theme') }}</h3>
+      <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('theme')">
+        @for (t of themes; track t.id) {
+          <button type="button" role="radio" [attr.aria-checked]="prefs.theme() === t.id" (click)="setTheme(t.id)">
+            <cs-icon [name]="t.icon" [size]="16" />{{ i18n.t(t.label) }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <section>
+      <h3>{{ i18n.t('accent') }}</h3>
+      <div class="swatches" role="radiogroup" [attr.aria-label]="i18n.t('accent')">
+        @for (a of accents; track a.id) {
+          <button type="button" role="radio" class="swatch" [style.--c]="a.hex" [style.--c2]="a.hex2" [attr.aria-checked]="prefs.accent() === a.id"
+            [attr.aria-label]="a.id" [title]="a.id" (click)="prefs.accent.set(a.id); sound.play(Cue.Tick)"></button>
+        }
+      </div>
+      <div class="custom" [class.on]="prefs.accent() === 'custom'">
+        <span class="custom-label">{{ i18n.t('customColors') }}</span>
+        <cs-color-picker class="picker" [value]="prefs.custom()[0]" (valueChange)="setCustom(0, $event)" [label]="i18n.t('primaryColor')" />
+        <cs-color-picker class="picker" [value]="prefs.custom()[1]" (valueChange)="setCustom(1, $event)" [label]="i18n.t('secondColor')" />
+        <span class="preview-pill" aria-hidden="true">Aa</span>
+      </div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h3>{{ i18n.t('language') }}</h3>
+        <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('language')">
+          <button type="button" role="radio" [attr.aria-checked]="prefs.lang() === 'en'" (click)="prefs.lang.set(Lang.En)">English</button>
+          <button type="button" role="radio" [attr.aria-checked]="prefs.lang() === 'ar'" (click)="prefs.lang.set(Lang.Ar)">العربية</button>
+        </div>
+      </div>
+      <div>
+        <h3>{{ i18n.t('sounds') }}</h3>
+        <label class="switch big"><input type="checkbox" role="switch" [checked]="sound.enabled()" (change)="sound.toggle(checked($event))" [attr.aria-label]="i18n.t('sounds')" /><span></span>
+          <cs-icon [name]="sound.enabled() ? 'sound' : 'mute'" [size]="16" /></label>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h3><cs-icon name="accessibility" [size]="16" />{{ i18n.t('accessibility') }}</h3>
+        @if (prefs.hasA11y()) {<button type="button" class="link" (click)="prefs.resetA11y()">{{ i18n.t('reset') }}</button>}
+      </div>
+
+      <h4>{{ i18n.t('textSize') }}</h4>
+      <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('textSize')">
+        @for (s of sizes; track s) {
+          <button type="button" role="radio" [attr.aria-checked]="prefs.a11y().fontScale === s" (click)="set('fontScale', s)">
+            <span [style.font-size.px]="sizePx[s]">A</span>
+          </button>
+        }
+      </div>
+
+      <h4>{{ i18n.t('contrast') }}</h4>
+      <div class="cards" role="radiogroup" [attr.aria-label]="i18n.t('contrast')">
+        @for (c of contrasts; track c.id) {
+          <button type="button" role="radio" class="card" [class]="'card c-' + c.id" [attr.aria-checked]="prefs.a11y().contrast === c.id" (click)="set('contrast', c.id)">
+            <span class="preview"><i></i><i></i></span>{{ i18n.t(c.label) }}
+          </button>
+        }
+      </div>
+
+      <h4>{{ i18n.t('motion') }}</h4>
+      <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('motion')">
+        @for (m of motions; track m.id) {
+          <button type="button" role="radio" [attr.aria-checked]="prefs.a11y().motion === m.id" (click)="set('motion', m.id)">{{ i18n.t(m.label) }}</button>
+        }
+      </div>
+
+      <h4>{{ i18n.t('saturation') }}</h4>
+      <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('saturation')">
+        @for (s of saturations; track s.id) {
+          <button type="button" role="radio" [attr.aria-checked]="prefs.a11y().saturation === s.id" (click)="set('saturation', s.id)">{{ i18n.t(s.label) }}</button>
+        }
+      </div>
+
+      <div class="toggles">
+        @for (o of toggles; track o.key) {
+          <label class="switch"><input type="checkbox" role="switch" [checked]="prefs.a11y()[o.key]" (change)="set(o.key, checked($event))" /><span></span>{{ i18n.t(o.label) }}</label>
+        }
+      </div>
+      <button type="button" class="btn ghost reset-btn" (click)="resetA11y()" [disabled]="!prefs.hasA11y()">
+        <cs-icon name="undo" [size]="16" />{{ i18n.t('resetA11y') }}
+      </button>
+    </section>
+
+    <section class="danger-zone">
+      <button type="button" class="btn danger reset-btn" (click)="resetAll()">
+        <cs-icon name="undo" [size]="16" />{{ i18n.t('resetAll') }}
+      </button>
+    </section>
+
+    <section>
+      <h3><cs-icon name="keyboard" [size]="16" />{{ i18n.t('shortcuts') }}</h3>
+      <dl class="keys">
+        @for (k of shortcuts; track k[0]) {
+          <div><dt>@for (part of k[0].split('+'); track $index) {<kbd>{{ part }}</kbd>}</dt><dd>{{ k[1] }}</dd></div>
+        }
+      </dl>
+    </section>
+  </div>
+</dialog>

@@ -1,0 +1,4 @@
+@use 'abstracts' as *;
+
+:host { display: inline-flex; flex: none; line-height: 0; }
+svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

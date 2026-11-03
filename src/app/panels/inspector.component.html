@@ -1,0 +1,192 @@
+@let fields = store.selected();
+@if (!fields.length) {
+  <div class="empty"><cs-icon name="layers" [size]="26" /><p>{{ i18n.t('noSelection') }}</p></div>
+} @else {
+  @let f = fields[0];
+  @let fm = fmt(f);
+  <header class="head">
+    @if (fields.length === 1) {
+      <span class="type" [style.--signer]="color(f)">{{ i18n.field(f.type) }}</span>
+      <label class="where">{{ i18n.t('page') }}
+        <input type="number" min="1" [max]="pagesCount()" [value]="f.page" (change)="moveToPage($event)" [attr.aria-label]="i18n.t('page')" />
+      </label>
+    } @else {
+      <span class="type">{{ i18n.t('selectedCount', { n: fields.length }) }}</span>
+    }
+  </header>
+
+  <div class="row">
+    <span class="lbl">{{ i18n.t('signer') }}</span>
+    <cs-select [options]="signerOptions()" [value]="f.signerId" (valueChange)="set({ signerId: $event! })" [label]="i18n.t('signer')" />
+  </div>
+
+  <div class="toggles">
+    <label class="switch"><input type="checkbox" role="switch" [checked]="all(fields, 'required')" (change)="set({ required: checked($event) })" /><span></span>{{ i18n.t('required') }}</label>
+    <label class="switch"><input type="checkbox" role="switch" [checked]="all(fields, 'readOnly')" (change)="set({ readOnly: checked($event) })" /><span></span>{{ i18n.t('readOnly') }}</label>
+  </div>
+
+  <!-- Content -->
+  <section [class.open]="open().has('content')">
+    <button type="button" class="sec" (click)="toggleSection('content')" [attr.aria-expanded]="open().has('content')">
+      <cs-icon name="text" [size]="16" />{{ i18n.t('secContent') }}<cs-icon name="down" [size]="15" class="chev" />
+    </button>
+    @if (open().has('content')) {
+      <div class="sec-body">
+        @if (fields.length === 1) {
+          <label class="row"><span class="lbl">{{ i18n.t('label') }}</span>
+            <input type="text" [value]="f.label" [placeholder]="i18n.field(f.type)" (change)="set({ label: text($event) })" /></label>
+          <label class="row"><span class="lbl">{{ i18n.t('hint') }}</span>
+            <input type="text" [value]="f.hint ?? ''" [placeholder]="i18n.t('hintPlaceholder')" (change)="set({ hint: text($event) || undefined })" /></label>
+          @if (isTextual(f)) {
+            <label class="row"><span class="lbl">{{ i18n.t('defaultValue') }}</span>
+              <input type="text" [value]="f.defaultValue ?? ''" (change)="setDefault(text($event))" /></label>
+          }
+          @if (hasOptions(f)) {
+            <label class="row"><span class="lbl">{{ i18n.t('options') }}</span>
+              <textarea rows="3" [value]="(f.options ?? []).join('\\n')" (change)="set({ options: lines($event) })"></textarea></label>
+          }
+        }
+        @if (isTextual(f) && !isDate(f)) {
+          <div class="two">
+            <label class="row"><span class="lbl">{{ i18n.t('characterLimit') }}</span>
+              <input type="number" min="0" max="500" [value]="f.characterLimit ?? ''" [placeholder]="'∞'" (change)="set({ characterLimit: num($event) || undefined })" /></label>
+            <div class="row"><span class="lbl">{{ i18n.t('validation') }}</span>
+              <cs-select [options]="validations()" [value]="f.validation ?? Validation.None" (valueChange)="set({ validation: $event! })" [label]="i18n.t('validation')" /></div>
+          </div>
+        }
+        @if (isDate(f)) {
+          <div class="row"><span class="lbl">{{ i18n.t('dateFormat') }}</span>
+            <cs-select [options]="dateFormats" [value]="f.dateFormat ?? DateFormat.DayMonthNameYear" (valueChange)="set({ dateFormat: $event! })" [label]="i18n.t('dateFormat')" /></div>
+        }
+        @if (f.type === 'Stamp') {
+          <div class="row"><span class="lbl">{{ i18n.t('department') }}</span>
+            <cs-select [options]="departments()" [value]="f.departmentId ?? null" (valueChange)="set({ departmentId: $event ?? undefined })" [label]="i18n.t('department')" [placeholder]="i18n.t('chooseDepartment')" /></div>
+        }
+        @if (f.type === 'Checkbox') {
+          <label class="switch"><input type="checkbox" role="switch" [checked]="!!f.checkedByDefault" (change)="setChecked(checked($event))" /><span></span>{{ i18n.t('checkedByDefault') }}</label>
+        }
+        @if (f.type === 'Dropdown' && (f.options ?? []).length) {
+          <div class="row"><span class="lbl">{{ i18n.t('defaultValue') }}</span>
+            <cs-select [options]="optionList(f)" [value]="f.defaultValue ?? null" (valueChange)="setDefault($event ?? '')" [label]="i18n.t('defaultValue')" /></div>
+        }
+        @if (f.type === 'Stamp') {
+          <div class="row"><span class="lbl">{{ i18n.t('stampShape') }}</span>
+            <div class="seg">
+              @for (s of shapes; track s) {
+                <button type="button" [attr.aria-pressed]="(f.stampShape ?? 'circle') === s" (click)="set({ stampShape: s })">{{ i18n.t(s) }}</button>
+              }
+            </div></div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Formatting -->
+  <section [class.open]="open().has('format')">
+    <button type="button" class="sec" (click)="toggleSection('format')" [attr.aria-expanded]="open().has('format')">
+      <cs-icon name="palette" [size]="16" />{{ i18n.t('secFormat') }}<cs-icon name="down" [size]="15" class="chev" />
+    </button>
+    @if (open().has('format')) {
+      <div class="sec-body">
+        <div class="row">
+          <span class="lbl">{{ i18n.t('fontSize') }} <output>{{ f.fontSize }}pt</output></span>
+          <input type="range" min="10" max="40" step="1" [value]="f.fontSize" (input)="preview($event)" (change)="set({ fontSize: num($event) })" [attr.aria-label]="i18n.t('fontSize')" />
+        </div>
+        <div class="row"><span class="lbl">{{ i18n.t('font') }}</span>
+          <cs-select [options]="fonts" [value]="fm.fontFamily" (valueChange)="setFmt({ fontFamily: $event! })" [label]="i18n.t('font')" /></div>
+        <div class="format-bar" role="group" [attr.aria-label]="i18n.t('secFormat')">
+          <button type="button" class="tool b" [attr.aria-pressed]="fm.bold" (click)="setFmt({ bold: !fm.bold })" [attr.aria-label]="i18n.t('bold')">B</button>
+          <button type="button" class="tool i" [attr.aria-pressed]="fm.italic" (click)="setFmt({ italic: !fm.italic })" [attr.aria-label]="i18n.t('italic')">I</button>
+          <button type="button" class="tool u" [attr.aria-pressed]="fm.underline" (click)="setFmt({ underline: !fm.underline })" [attr.aria-label]="i18n.t('underline')">U</button>
+          <span class="divider"></span>
+          @for (a of textAligns; track a.id) {
+            <button type="button" class="tool" [attr.aria-pressed]="fm.align === a.id" (click)="setFmt({ align: a.id })" [attr.aria-label]="a.id"><cs-icon [name]="a.icon" [size]="16" /></button>
+          }
+        </div>
+        <div class="two">
+          <cs-color-picker [value]="fm.color" (valueChange)="setFmt({ color: $event })" [label]="i18n.t('textColor')" />
+          <cs-color-picker [value]="fm.borderColor || color(f)" (valueChange)="setFmt({ borderColor: $event })" [label]="i18n.t('borderColor')" />
+          <cs-color-picker [value]="fm.background || '#ffffff'" (valueChange)="setFmt({ background: $event })" [label]="i18n.t('backgroundColor')" />
+        </div>
+        <div class="row"><span class="lbl">{{ i18n.t('direction') }}</span>
+          <div class="seg">
+            @for (d of dirs; track d) {
+              <button type="button" [attr.aria-pressed]="(f.dir ?? 'auto') === d" (click)="set({ dir: d })">{{ dirLabel(d) }}</button>
+            }
+          </div></div>
+      </div>
+    }
+  </section>
+
+  <!-- Behaviour -->
+  <section [class.open]="open().has('behaviour')">
+    <button type="button" class="sec" (click)="toggleSection('behaviour')" [attr.aria-expanded]="open().has('behaviour')">
+      <cs-icon name="settings" [size]="16" />{{ i18n.t('secBehaviour') }}<cs-icon name="down" [size]="15" class="chev" />
+    </button>
+    @if (open().has('behaviour')) {
+      <div class="sec-body toggles">
+        @if (forceable(f)) {
+          <label class="switch"><input type="checkbox" role="switch" [checked]="all(fields, 'forceApply')" (change)="askForce($event)" /><span></span>
+            <span class="sw-text">{{ i18n.t('forceApply') }}<small>{{ i18n.t('forceApplyHint') }}</small></span></label>
+          @if (confirmForce() !== null) {
+            <div class="confirm" role="alertdialog" aria-live="assertive">
+              <strong>{{ i18n.t(confirmForce() ? 'forceApplyOnTitle' : 'forceApplyOffTitle') }}</strong>
+              <p>{{ i18n.t(confirmForce() ? 'forceApplyOnBody' : 'forceApplyOffBody') }}</p>
+              <div class="confirm-actions">
+                <button type="button" class="btn ghost" (click)="confirmForce.set(null)">{{ i18n.t('cancel') }}</button>
+                <button type="button" class="btn primary" (click)="applyForce()">{{ i18n.t('confirm') }}</button>
+              </div>
+            </div>
+          }
+        }
+        <label class="switch"><input type="checkbox" role="switch" [checked]="all(fields, 'locked')" (change)="set({ locked: checked($event) })" /><span></span>
+          <span class="sw-text">{{ i18n.t('lockPosition') }}<small>{{ i18n.t('lockPositionHint') }}</small></span></label>
+        <label class="switch"><input type="checkbox" role="switch" [checked]="all(fields, 'fixedSize')" (change)="set({ fixedSize: checked($event) })" /><span></span>
+          <span class="sw-text">{{ i18n.t('fixedSize') }}<small>{{ i18n.t('fixedSizeHint') }}</small></span></label>
+      </div>
+    }
+  </section>
+
+  <!-- Placement -->
+  <section [class.open]="open().has('placement')">
+    <button type="button" class="sec" (click)="toggleSection('placement')" [attr.aria-expanded]="open().has('placement')">
+      <cs-icon name="copy" [size]="16" />{{ i18n.t('secPlacement') }}<cs-icon name="down" [size]="15" class="chev" />
+    </button>
+    @if (open().has('placement')) {
+      <div class="sec-body">
+        <div class="row"><span class="lbl">{{ i18n.t('fieldLocation') }}</span>
+          <div class="seg" role="radiogroup" [attr.aria-label]="i18n.t('fieldLocation')">
+            <button type="button" role="radio" [attr.aria-checked]="location() === 'all'" (click)="location.set(FieldLocation.All)">{{ i18n.t('allPages') }}</button>
+            <button type="button" role="radio" [attr.aria-checked]="location() === 'first'" (click)="location.set(FieldLocation.First)">{{ i18n.t('firstPage') }}</button>
+            <button type="button" role="radio" [attr.aria-checked]="location() === 'last'" (click)="location.set(FieldLocation.Last)">{{ i18n.t('lastPage') }}</button>
+            <button type="button" role="radio" [attr.aria-checked]="location() === 'range'" (click)="location.set(FieldLocation.Range)">{{ i18n.t('customRange') }}</button>
+          </div>
+          @if (location() === 'range') {
+            <input type="text" inputmode="numeric" [value]="rangeText()" (input)="rangeText.set(text($event))" [placeholder]="'1-3, 5, 8'"
+              [attr.aria-invalid]="!rangeValid()" [attr.aria-label]="i18n.t('customRange')" />
+            @if (!rangeValid()) {<small class="error">{{ i18n.t('rangeInvalid', { n: pagesCount() }) }}</small>}
+          }
+          <button type="button" class="btn ghost" [disabled]="!rangeValid() || (location() === 'range' && !rangeText())" (click)="placeOnPages()">{{ i18n.t('apply') }}</button>
+        </div>
+        @if (fields.length > 1) {
+          <span class="lbl">{{ i18n.t('align') }}</span>
+          <div class="tools">
+            @for (a of aligns; track a.mode) {
+              <button type="button" class="tool" (click)="align(a.mode)" [attr.aria-label]="a.mode" [title]="a.mode"><cs-icon [name]="a.icon" /></button>
+            }
+            <button type="button" class="tool" (click)="store.distribute(Axis.X)" [disabled]="fields.length < 3" [title]="i18n.t('distribute')"><cs-icon name="distributeH" /></button>
+            <button type="button" class="tool" (click)="store.distribute(Axis.Y)" [disabled]="fields.length < 3" [title]="i18n.t('distribute')"><cs-icon name="distributeV" /></button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <div class="actions">
+    <button type="button" class="btn ghost" (click)="duplicate()"><cs-icon name="copy" [size]="16" />{{ i18n.t('duplicate') }}</button>
+    @if (fields.length === 1) {
+      <button type="button" class="btn ghost" (click)="paint(f)" [attr.aria-pressed]="painting()"><cs-icon name="palette" [size]="16" />{{ i18n.t('formatPainter') }}</button>
+    }
+    <button type="button" class="btn danger" (click)="remove()"><cs-icon name="trash" [size]="16" />{{ i18n.t('delete') }}</button>
+  </div>
+}

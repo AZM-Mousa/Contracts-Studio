@@ -1,0 +1,7 @@
+<span class="paper" [style.aspect-ratio]="ratio()">
+  <canvas #canvas [class.ready]="ready()"></canvas>
+  @if (count(); as c) {
+    <span class="badge" [class.warn]="missing()" aria-hidden="true">{{ c }}</span>
+  }
+</span>
+<span class="num"><span class="sr-only">{{ i18n.t('page') }} </span>{{ page() }}@if (count(); as c) {<span class="sr-only">, {{ c }} {{ i18n.t('fields') }}</span>}</span>

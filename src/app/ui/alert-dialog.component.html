@@ -1,0 +1,42 @@
+<dialog #dialog class="alert" (cancel)="cancel($event)" [attr.aria-labelledby]="'alert-title'" [attr.aria-describedby]="'alert-text'">
+  @if (alerts.current(); as a) {
+    <div class="art" [class]="'art ' + a.kind" aria-hidden="true">
+      @switch (a.kind) {
+        @case ('success') {
+          <svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="40" /><path class="mark" d="M32 51l12 12 24-26" /></svg>
+          <span class="confetti"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        }
+        @case ('warning') {
+          <svg viewBox="0 0 100 100"><path class="ring tri" d="M50 14 90 84H10Z" /><path class="mark" d="M50 40v20M50 70v1" /></svg>
+        }
+        @case ('error') {
+          <svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="40" /><path class="mark" d="M36 36l28 28M64 36 36 64" /></svg>
+        }
+        @case ('question') {
+          <svg viewBox="0 0 100 100"><rect class="ring" x="24" y="12" width="52" height="70" rx="8" /><path class="mark" d="M41 40a9 9 0 1 1 13 8c-3 2-4 4-4 8M50 66v1" /><path class="pen" d="M70 70l14 14" /></svg>
+        }
+        @default {
+          <svg viewBox="0 0 100 100"><circle class="ring" cx="50" cy="50" r="40" /><path class="mark" d="M50 45v22M50 33v1" /></svg>
+        }
+      }
+    </div>
+    <h2 id="alert-title">{{ a.title }}</h2>
+    @if (a.text) {<p id="alert-text">{{ a.text }}</p>}
+    @if (a.input; as field) {
+      <label class="input">
+        <span>{{ field.label }}@if (!field.optional) {<b aria-hidden="true"> *</b>}</span>
+        <textarea #text rows="3" [placeholder]="field.placeholder ?? ''" (input)="value.set(read($event))"
+          [attr.aria-required]="!field.optional" [attr.aria-invalid]="touched() && !valid()"></textarea>
+        @if (touched() && !valid()) {<small role="alert">{{ i18n.t('reasonRequired') }}</small>}
+      </label>
+    }
+    <div class="actions">
+      @if (a.cancelText !== '') {
+        <button type="button" class="btn ghost" (click)="resolve(false)">{{ a.cancelText ?? i18n.t('cancel') }}</button>
+      }
+      <button #confirm type="button" class="btn" [class.primary]="!a.danger" [class.danger-solid]="a.danger" (click)="resolve(true)">
+        {{ a.confirmText ?? i18n.t('confirm') }}
+      </button>
+    </div>
+  }
+</dialog>

@@ -1,0 +1,35 @@
+@use 'sass:meta';
+@use 'functions' as fn;
+
+@function -width($query) {
+  @if meta.type-of($query) == string {
+    @return fn.bp($query);
+  }
+  @return $query;
+}
+
+/// From a breakpoint up: @include mq-min(tablet) { … }
+@mixin mq-min($query) {
+  @media (min-width: -width($query)) {
+    @content;
+  }
+}
+
+/// Up to a breakpoint: @include mq-max(tablet) { … }
+@mixin mq-max($query) {
+  @media (max-width: -width($query)) {
+    @content;
+  }
+}
+
+@mixin touch {
+  @media (pointer: coarse) {
+    @content;
+  }
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

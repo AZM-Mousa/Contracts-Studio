@@ -1,0 +1,158 @@
+@forward 'mq';
+@use 'mq' as *;
+@use 'variables' as v;
+@use 'functions' as fn;
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@mixin button-reset {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+@mixin flex-center($gap: 0) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $gap;
+}
+
+@mixin ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@mixin focus-ring($offset: 2px) {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus);
+  outline-offset: $offset;
+}
+
+/// Small uppercase section label.
+@mixin overline {
+  font-size: v.$font-size-xs;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/// Bordered surface used by panels and list rows.
+@mixin card($radius: v.$radius-lg, $padding: v.$space-3) {
+  border: 1px solid var(--line);
+  border-radius: $radius;
+  background: var(--surface);
+  padding: $padding;
+}
+
+/// Frosted floating surface (signing bar, chips, search).
+@mixin glass($radius: v.$radius-lg) {
+  border: 1px solid var(--line);
+  border-radius: $radius;
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: var(--shadow-md);
+}
+
+/// Dialog panel with the shared backdrop.
+@mixin dialog-surface($radius: v.$radius-xl) {
+  border: 1px solid var(--line);
+  border-radius: $radius;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  &::backdrop {
+    background: rgb(15 23 42 / 0.45);
+    backdrop-filter: blur(3px);
+  }
+}
+
+/// Segmented control: a track with buttons; the pressed/checked one is raised.
+@mixin segmented($height: 32px, $selected: '[aria-checked="true"], [aria-pressed="true"], [aria-selected="true"]') {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: v.$radius-md + 2;
+  background: var(--chip);
+  button {
+    @include button-reset;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: $height;
+    padding: 0 v.$space-2;
+    border-radius: v.$radius-sm + 1;
+    color: var(--muted);
+    font: 600 v.$font-size-md var(--font-ui);
+    transition: background-color v.$duration v.$ease, color v.$duration v.$ease, box-shadow v.$duration v.$ease;
+    &:hover { color: var(--ink); }
+    &:is(#{$selected}) {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+/// Rounded tag.
+@mixin pill($bg: var(--chip), $color: var(--muted)) {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: 3px 10px;
+  border-radius: v.$radius-pill;
+  background: $bg;
+  color: $color;
+  font-size: v.$font-size-sm;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/// Accent gradient surface (two-colour themes).
+@mixin accent-gradient($angle: 135deg) {
+  background: linear-gradient($angle, var(--accent), var(--accent-2));
+  color: var(--on-accent);
+}
+
+/// A popover anchored under its trigger; .up flips it above.
+@mixin popover($width: auto) {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: fn.z(popover);
+  width: $width;
+  border: 1px solid var(--line);
+  border-radius: v.$radius-lg;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+  animation: cs-pop-in v.$duration v.$ease;
+}
+
+@mixin thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/// Touch targets grow on coarse pointers.
+@mixin touch-target($size: v.$control-height-touch) {
+  @include touch {
+    min-width: $size;
+    min-height: $size;
+  }
+}

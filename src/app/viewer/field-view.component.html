@@ -1,0 +1,53 @@
+@if (state.editing() && field().type === 'Checkbox') {
+  <span class="check-edit" aria-hidden="true"><cs-icon name="check2" [size]="12" /></span>
+  <span class="check-label">{{ field().label || i18n.field(field().type) }}@if (field().required) {<b aria-hidden="true"> *</b>}</span>
+} @else if (state.editing()) {
+  <span class="tag"><cs-icon [name]="meta().icon" [size]="13" />{{ field().label || i18n.field(field().type) }}@if (field().required) {<b aria-hidden="true">*</b>}</span>
+  @if (selected() && single() && !field().fixedSize && !field().locked) {
+    @for (h of handles; track h) {
+      <span class="handle" [attr.data-handle]="h" [class]="'handle h-' + h"></span>
+    }
+  }
+} @else if (editableInput() && inputType(); as type) {
+  <input [type]="type" class="fill-input" [value]="text()" [placeholder]="field().hint || i18n.field(field().type)"
+    [attr.maxlength]="field().characterLimit || null" [attr.dir]="field().dir === 'auto' ? 'auto' : field().dir"
+    [attr.aria-invalid]="invalid()" (input)="setText($event)" (click)="$event.stopPropagation()" [attr.aria-label]="ariaLabel()" />
+  @if (field().characterLimit) {<span class="limit" aria-hidden="true">{{ text().length }}/{{ field().characterLimit }}</span>}
+} @else if (isDate() && editableInput()) {
+  <cs-datepicker class="fill-date" [value]="text()" (valueChange)="setDate($event)" [label]="ariaLabel()"
+    [placeholder]="cta()" [hijri]="field().type === 'HijriDate'" (click)="$event.stopPropagation()" />
+} @else if (field().type === 'Checkbox') {
+  <span class="check" [class.on]="field().value === true">@if (field().value === true) {<cs-icon name="check2" [size]="14" />}</span>
+  @if (field().label) {<span class="check-label">{{ field().label }}</span>}
+} @else if (field().type === 'Dropdown' && editableInput()) {
+  <cs-select class="fill-select" [options]="dropdownOptions()" [value]="text() || null" (valueChange)="setOption($event)"
+    [label]="ariaLabel()" [placeholder]="field().hint || i18n.field(field().type)" (click)="$event.stopPropagation()" />
+} @else if (field().type === 'MultiSelect') {
+  <span class="radios multi" role="group" [attr.aria-label]="ariaLabel()">
+    @for (o of field().options ?? []; track o) {
+      <button type="button" class="radio" role="checkbox" [attr.aria-checked]="picked().includes(o)" [attr.aria-disabled]="!editableInput() || null" [attr.tabindex]="editableInput() ? 0 : -1"
+        (click)="toggleOption(o, $event)"><span class="dot">@if (picked().includes(o)) {<cs-icon name="check2" [size]="10" />}</span>{{ o }}</button>
+    }
+  </span>
+} @else if (field().type === 'RadioGroup') {
+  <span class="radios" role="radiogroup">
+    @for (o of field().options ?? []; track o) {
+      <button type="button" class="radio" role="radio" [attr.aria-checked]="field().value === o" [attr.aria-disabled]="!editableInput() || null" [attr.tabindex]="editableInput() ? 0 : -1"
+        (click)="choose(o, $event)"><span class="dot"></span>{{ o }}</button>
+    }
+  </span>
+} @else if (field().type === 'QrCode' || field().type === 'Barcode') {
+  <span class="code" [class.qr]="field().type === 'QrCode'"></span>
+} @else if (isDrawn() && filled()) {
+  <img class="drawn" [src]="field().value" alt="" />
+} @else if (filled()) {
+  <span class="value">{{ shown() }}</span>
+} @else {
+  <span class="placeholder">
+    <cs-icon [name]="meta().icon" [size]="15" />
+    {{ mine() && state.filling() ? cta() : i18n.field(field().type) }}
+  </span>
+}
+@if (state.filling() && mine() && field().required && !filled()) {
+  <span class="flag" aria-hidden="true">{{ i18n.t('tapToFill') }}</span>
+}

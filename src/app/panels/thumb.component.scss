@@ -1,0 +1,69 @@
+@use 'abstracts' as *;
+
+:host {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 196px;
+  padding: 10px 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.paper {
+  position: relative;
+  width: 116px;
+  border-radius: 4px;
+  overflow: visible;
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.1), 0 4px 12px -6px rgb(15 23 42 / 0.25);
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 220ms var(--ease);
+  &.ready { opacity: 1; }
+}
+
+:host(:hover) .paper { transform: translateY(-2px); }
+
+:host(.active) .paper {
+  box-shadow: 0 0 0 2px var(--accent), 0 8px 20px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+:host(:focus-visible) .paper { box-shadow: 0 0 0 3px var(--focus); }
+
+.num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+:host(.active) .num { color: var(--accent); }
+
+.badge {
+  position: absolute;
+  inset-block-start: -6px;
+  inset-inline-end: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-strong);
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--panel);
+  &.warn { background: var(--danger); }
+}

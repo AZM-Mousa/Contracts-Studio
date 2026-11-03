@@ -1,0 +1,162 @@
+@use 'abstracts' as *;
+
+:host {
+  display: grid;
+  gap: 6px;
+  animation: cs-pop-in $duration-slow $ease;
+}
+
+.bar {
+  @include glass($radius-lg);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  height: 46px;
+  padding: 0 6px 0 12px;
+  overflow: hidden;
+  .lead { color: var(--muted); }
+  input {
+    flex: 1;
+    min-width: 80px;
+    height: 100%;
+    padding: 0 6px;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    font-size: $font-size-lg;
+    &:focus { box-shadow: none; }
+  }
+}
+
+.progress {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width $duration $ease;
+}
+
+.count {
+  min-width: 64px;
+  font-size: $font-size-sm;
+  color: var(--muted);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mic.listening {
+  color: var(--on-accent);
+  background: var(--danger);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--danger) 25%, transparent); } }
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.opt {
+  @include button-reset;
+  @include glass($radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: var(--muted);
+  box-shadow: var(--shadow-sm);
+  .glyph {
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 4px;
+    border-radius: $radius-pill;
+    background: var(--chip);
+    color: var(--ink);
+    font-weight: 800;
+  }
+  &[aria-pressed='true'] {
+    color: var(--accent);
+    border-color: var(--accent);
+    .glyph { @include accent-gradient; }
+  }
+  &:focus-visible { @include focus-ring; }
+}
+
+.panel {
+  @include glass($radius-lg);
+  display: grid;
+  gap: $space-2;
+  max-height: min(48vh, 420px);
+  overflow: auto;
+  padding: $space-3;
+  @include thin-scrollbar;
+  h4 { margin: 0; @include overline; }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  @include button-reset;
+  @include pill;
+  cursor: pointer;
+  &:hover, &:focus-visible { color: var(--ink); background: color-mix(in srgb, var(--accent) 12%, var(--chip)); }
+}
+
+.pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 6px;
+}
+
+.page-hit {
+  @include button-reset;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: $radius-md;
+  background: var(--surface);
+  font-size: $font-size-sm;
+  font-variant-numeric: tabular-nums;
+  span { font-weight: 700; }
+  b { @include pill(color-mix(in srgb, var(--accent) 14%, transparent), var(--accent)); padding: 0 6px; font-size: 10.5px; }
+  &:hover, &:focus-visible { border-color: var(--accent); }
+  &.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+  &.more { color: var(--accent); font-weight: 800; align-content: center; }
+}
+
+.field-hits {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  button {
+    @include button-reset;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    width: 100%;
+    padding: 7px 8px;
+    border-radius: $radius-sm;
+    text-align: start;
+    &:hover, &:focus-visible { background: var(--chip); }
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .what { flex: 1; @include ellipsis; font-size: $font-size-md; font-weight: 600; }
+  .where { color: var(--muted); font-size: $font-size-sm; }
+}

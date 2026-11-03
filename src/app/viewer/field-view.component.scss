@@ -1,0 +1,345 @@
+@use 'abstracts' as *;
+
+:host {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  min-width: 0;
+  /* --fs is in PDF points; --scale-factor is CSS px per PDF point at the current zoom. */
+  font: 500 calc(var(--fs, 10) * var(--scale-factor, 1) * 1px) / 1.15 var(--font-ui);
+  color: color-mix(in srgb, var(--signer) 70%, var(--field-ink));
+  border-radius: calc(4px * min(var(--scale-factor, 1), 1.6));
+  background: color-mix(in srgb, var(--signer) 9%, var(--field-bg));
+  border: 1.5px solid color-mix(in srgb, var(--signer) 55%, transparent);
+  transition: box-shadow 160ms var(--ease), background-color 160ms var(--ease), border-color 160ms var(--ease), opacity 160ms var(--ease);
+  outline: none;
+  contain: layout style;
+  pointer-events: auto;
+}
+
+:host(.mode-edit) {
+  cursor: grab;
+  touch-action: none;
+  // On touch a swipe over a field scrolls the page; press and hold to drag it.
+  @include touch { touch-action: pan-x pan-y; }
+  user-select: none;
+  border-style: dashed;
+}
+
+:host(.mode-edit:hover) {
+  background: color-mix(in srgb, var(--signer) 16%, var(--field-bg));
+  box-shadow: 0 2px 10px -2px color-mix(in srgb, var(--signer) 35%, transparent);
+}
+
+:host(.is-selected) {
+  border-style: solid;
+  border-color: var(--signer);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signer) 22%, transparent), 0 6px 18px -6px color-mix(in srgb, var(--signer) 45%, transparent);
+  z-index: 2;
+}
+
+:host(:focus-visible) {
+  box-shadow: 0 0 0 3px var(--focus);
+  z-index: 3;
+}
+
+:host(.is-locked) {
+  opacity: 0.55;
+  cursor: default;
+  filter: saturate(0.6);
+}
+
+:host(.is-mine:not(.mode-edit)) {
+  cursor: pointer;
+  animation: breathe 2.6s var(--ease) infinite;
+}
+
+:host(.is-filled) {
+  animation: none;
+  background: color-mix(in srgb, var(--signer) 5%, transparent);
+  border-color: color-mix(in srgb, var(--signer) 28%, transparent);
+  border-style: solid;
+}
+
+:host(.is-missing) {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, var(--field-bg));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+@keyframes breathe {
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--signer) 18%, transparent); }
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  max-width: 100%;
+  padding: 0 0.4em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  b { color: var(--danger); font-weight: 700; }
+}
+
+.placeholder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: 600;
+}
+
+.value {
+  width: 100%;
+  padding: 0 0.4em;
+  color: var(--field-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: start;
+}
+
+.drawn {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.fill-input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 0.4em;
+  border: 0;
+  background: transparent;
+  color: var(--field-ink);
+  font: inherit;
+  outline: none;
+  &::placeholder { color: color-mix(in srgb, var(--signer) 55%, transparent); }
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--on-strong);
+  &.on { background: var(--signer); }
+}
+
+.check-label {
+  position: absolute;
+  inset-inline-start: calc(100% + 0.5em);
+  white-space: nowrap;
+  color: var(--field-ink);
+}
+
+.radios {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.3em;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  border: 0;
+  background: none;
+  color: var(--field-ink);
+  font: inherit;
+  padding: 0.1em 0;
+  cursor: inherit;
+  .dot {
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    border: 1.5px solid var(--signer);
+  }
+  &[aria-checked='true'] .dot { background: radial-gradient(var(--signer) 45%, transparent 50%); }
+}
+
+// Multi-select: square boxes with a tick instead of round dots.
+.multi .radio {
+  .dot {
+    display: grid;
+    place-items: center;
+    border-radius: 3px;
+    color: var(--on-strong);
+  }
+  &[aria-checked='true'] .dot { background: var(--signer); }
+}
+
+.code {
+  width: 86%;
+  height: 76%;
+  opacity: 0.75;
+  background: repeating-linear-gradient(90deg, var(--field-ink) 0 2px, transparent 2px 4px, var(--field-ink) 4px 5px, transparent 5px 8px);
+  &.qr {
+    width: auto;
+    aspect-ratio: 1;
+    height: 80%;
+    background:
+      conic-gradient(var(--field-ink) 25%, transparent 0 50%, var(--field-ink) 0 75%, transparent 0) 0 0 / 25% 25%;
+  }
+}
+
+.flag {
+  position: absolute;
+  inset-block-end: calc(100% + 4px);
+  inset-inline-start: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--signer);
+  color: var(--on-strong);
+  font: 600 11px/1.4 var(--font-ui);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--signer) 60%, transparent);
+}
+
+.handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border-radius: 3px;
+  background: var(--surface);
+  border: 1.5px solid var(--signer);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  touch-action: none;
+  @include touch {
+    width: 18px;
+    height: 18px;
+    margin: -9px;
+    border-radius: 50%;
+  }
+}
+
+.h-nw { top: 0; left: 0; cursor: nwse-resize; }
+.h-n { top: 0; left: 50%; cursor: ns-resize; }
+.h-ne { top: 0; left: 100%; cursor: nesw-resize; }
+.h-e { top: 50%; left: 100%; cursor: ew-resize; }
+.h-se { top: 100%; left: 100%; cursor: nwse-resize; }
+.h-s { top: 100%; left: 50%; cursor: ns-resize; }
+.h-sw { top: 100%; left: 0; cursor: nesw-resize; }
+.h-w { top: 50%; left: 0; cursor: ew-resize; }
+
+/* Formatting from the field settings. */
+:host(.b) { font-weight: 700; }
+:host(.i) { font-style: italic; }
+:host(.u) .value, :host(.u) .fill-input { text-decoration: underline; }
+:host(.font-serif) { font-family: 'Georgia', 'Times New Roman', 'Noto Naskh Arabic', serif; }
+:host(.font-mono) { font-family: ui-monospace, 'Cascadia Code', monospace; }
+:host(.font-hand) { font-family: 'Segoe Script', 'Bradley Hand', cursive; }
+:host(.align-center) .value, :host(.align-center) .fill-input { text-align: center; }
+:host(.align-end) .value, :host(.align-end) .fill-input { text-align: end; }
+:host { --fink: var(--field-ink); }
+.value, .fill-input { color: var(--fink); }
+:host([style*='--border']) { border-color: var(--border); }
+
+:host(.is-invalid) {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+:host(.is-pinned.mode-edit) { cursor: default; }
+:host(.is-pinned.mode-edit)::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signer);
+}
+
+.limit {
+  position: absolute;
+  inset-block-start: calc(100% + 2px);
+  inset-inline-end: 0;
+  font: 600 10px var(--font-ui);
+  color: var(--muted);
+}
+
+.fill-select {
+  width: 100%;
+  height: 100%;
+  ::ng-deep .trigger { min-height: 100%; height: 100%; border: 0; background: transparent; font-size: inherit; padding: 0 0.4em; }
+}
+
+.fill-date {
+  width: 100%;
+  height: 100%;
+  ::ng-deep .trigger { min-height: 100%; height: 100%; border: 0; background: transparent; padding: 0 0.4em; font-size: inherit; gap: 0.3em; }
+  ::ng-deep .trigger small, ::ng-deep .trigger .chev { display: none; }
+  ::ng-deep .pop { font-size: 13px; }
+}
+:host(.mode-edit) .fill-date, :host(.mode-edit) .fill-select { pointer-events: none; }
+
+/*
+ * Text always fits the box: the field is a size container and its text is capped by
+ * the box height (cqh), so a large font size never spills out of a small field.
+ */
+:host {
+  container-type: size;
+}
+
+.tag,
+.placeholder,
+.value,
+.fill-input,
+.check-label {
+  font-size: min(1em, 62cqh);
+}
+
+.tag,
+.placeholder {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+}
+
+.tag cs-icon,
+.placeholder cs-icon {
+  flex: none;
+  width: min(1em, 18px);
+}
+
+.flag {
+  font-size: 11px;
+}
+
+/* Checkbox in Prepare mode: just the box with a tick; its label sits beside it, as on paper. */
+:host(.cs-type-checkbox) {
+  overflow: visible;
+}
+
+.check-edit {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--signer);
+  cs-icon { width: 70%; max-width: 14px; }
+}
+
+.check-label {
+  font-size: calc(var(--fs, 10) * var(--scale-factor, 1) * 1px);
+  font-weight: 600;
+  color: var(--fink);
+  b { color: var(--danger); }
+}

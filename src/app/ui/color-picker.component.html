@@ -1,0 +1,41 @@
+<button type="button" class="trigger" (click)="toggle()" [attr.aria-expanded]="open()" aria-haspopup="dialog" [attr.aria-label]="label() + ' ' + value()">
+  <span class="chip" [style.background]="value() || null" [class.empty]="!value()"></span>
+  <span class="name">{{ label() }}</span>
+</button>
+@if (open()) {
+  <div class="pop" role="dialog" [attr.aria-label]="label()" (keydown.escape)="close($event)">
+    <div class="area" #area role="slider" tabindex="0" [attr.aria-label]="'saturation and brightness'"
+      [attr.aria-valuetext]="'saturation ' + pct(hsv().s) + '%, brightness ' + pct(hsv().v) + '%'"
+      [style.background-color]="hueColor()" (pointerdown)="dragArea($event, area)" (keydown)="areaKey($event)">
+      <span class="knob" [style.left.%]="hsv().s * 100" [style.top.%]="(1 - hsv().v) * 100" [style.background]="value()"></span>
+    </div>
+    <div class="hue" #hue role="slider" tabindex="0" aria-label="hue" aria-valuemin="0" aria-valuemax="360" [attr.aria-valuenow]="round(hsv().h)"
+      (pointerdown)="dragHue($event, hue)" (keydown)="hueKey($event)">
+      <span class="knob" [style.left.%]="hsv().h / 3.6" [style.background]="hueColor()"></span>
+    </div>
+    <div class="row">
+      <span class="preview" [style.background]="value()"></span>
+      <label class="hex"><span>#</span>
+        <input type="text" [value]="value().replace('#', '')" maxlength="6" spellcheck="false" (change)="typeHex($event)" aria-label="hex" dir="ltr" />
+      </label>
+      @if (eyedropper) {
+        <button type="button" class="icon-btn" (click)="pickFromScreen()" aria-label="eyedropper" title="Eyedropper"><cs-icon name="eyedropper" [size]="17" /></button>
+      }
+    </div>
+    <div class="contrast" [class.bad]="contrast() < 4.5">
+      {{ contrast().toFixed(1) }}:1 · {{ contrast() >= 7 ? 'AAA' : contrast() >= 4.5 ? 'AA' : contrast() >= 3 ? 'AA large' : 'low contrast' }}
+    </div>
+    <div class="swatches" role="listbox" aria-label="presets">
+      @for (c of allSwatches(); track c) {
+        <button type="button" role="option" class="sw" [style.background]="c" [attr.aria-selected]="c === value()" [attr.aria-label]="c" (click)="pick(c)"></button>
+      }
+    </div>
+    @if (recent().length) {
+      <div class="swatches recent" role="listbox" aria-label="recent">
+        @for (c of recent(); track c) {
+          <button type="button" role="option" class="sw" [style.background]="c" [attr.aria-label]="c" (click)="pick(c)"></button>
+        }
+      </div>
+    }
+  </div>
+}

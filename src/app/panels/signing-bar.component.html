@@ -1,0 +1,17 @@
+<svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+  <defs><linearGradient id="cs-ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)" /><stop offset="1" stop-color="var(--accent-2)" /></linearGradient></defs>
+  <circle cx="18" cy="18" r="15.5" class="track" />
+  <circle cx="18" cy="18" r="15.5" class="bar" [style.stroke-dashoffset]="dash()" />
+</svg>
+<div class="text">
+  <strong>{{ complete() ? i18n.t('allDone') : i18n.t('progress', progress()) }}</strong>
+  <span>{{ signerName() }}</span>
+</div>
+<button type="button" class="icon-btn" (click)="nav.previous()" [attr.aria-label]="i18n.t('prevField')"><cs-icon name="up" /></button>
+@if (!started() && !complete()) {
+  <button type="button" class="btn primary" (click)="start()">{{ i18n.t('startSigning') }}<cs-icon name="down" [size]="16" /></button>
+} @else if (complete()) {
+  <button type="button" class="btn primary" (click)="finished.emit()"><cs-icon name="check2" [size]="16" />{{ i18n.t('finish') }}</button>
+} @else {
+  <button type="button" class="btn primary" (click)="nav.next()">{{ i18n.t('nextField') }}<cs-icon name="down" [size]="16" /></button>
+}

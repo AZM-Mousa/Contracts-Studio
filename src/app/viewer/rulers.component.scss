@@ -1,0 +1,41 @@
+@use 'abstracts' as *;
+
+$ruler: 20px;
+
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+canvas {
+  position: absolute;
+  display: block;
+}
+
+.top {
+  inset: 0 0 auto $ruler;
+  width: calc(100% - #{$ruler});
+  height: $ruler;
+}
+
+.side {
+  inset: $ruler auto 0 0;
+  width: $ruler;
+  height: calc(100% - #{$ruler});
+}
+
+.corner {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: grid;
+  place-items: center;
+  width: $ruler;
+  height: $ruler;
+  border-inline-end: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font: 700 8px var(--font-ui);
+}

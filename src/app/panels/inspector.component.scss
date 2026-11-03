@@ -1,0 +1,147 @@
+@use 'abstracts' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 8px;
+  text-align: center;
+  color: var(--muted);
+  p { margin: 0; font-size: 13px; line-height: 1.5; }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  &::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--signer, var(--accent));
+  }
+}
+
+.where {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  input {
+    width: 64px;
+    min-height: 28px;
+    padding: 2px 6px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: 600 12px var(--font-ui);
+  }
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  span { display: flex; justify-content: space-between; }
+  output { color: var(--ink); font-variant-numeric: tabular-nums; }
+}
+
+h4 {
+  margin: 4px 0 -4px;
+  @include overline;
+}
+
+.toggles {
+  display: grid;
+  gap: 8px;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  &:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.confirm {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  animation: rise 180ms var(--ease);
+  strong { font-size: 13px; }
+  p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+}
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; .btn { height: 30px; } }
+@keyframes rise { from { transform: translateY(4px); opacity: 0; } }
+.error { color: var(--danger); font-size: 11.5px; }
+input[aria-invalid='true'] { border-color: var(--danger); }
+section { border-top: 1px solid var(--line); }
+.sec {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 0; border: 0; background: none;
+  color: var(--ink); font: 700 13px var(--font-ui); cursor: pointer;
+  .chev { margin-inline-start: auto; color: var(--muted); transition: transform 180ms var(--ease); }
+}
+section.open .sec .chev { transform: rotate(180deg); }
+.sec-body { display: grid; gap: 12px; padding-bottom: 14px; }
+.lbl { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg {
+  @include segmented(30px);
+}
+.format-bar {
+  display: flex; align-items: center; gap: 4px;
+  .divider { width: 1px; height: 22px; margin: 0 4px; background: var(--line); }
+  .tool { width: 34px; height: 32px; }
+  .tool[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .b { font-weight: 800; } .i { font-style: italic; font-family: Georgia, serif; } .u { text-decoration: underline; }
+}
+.color-row {
+  position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line);
+  border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+  .swatch { width: 20px; height: 20px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12); }
+  input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+}
+.sw-text { display: grid; small { font-size: 11px; font-weight: 400; color: var(--muted); } }

@@ -1,0 +1,43 @@
+<button type="button" class="trigger" (click)="toggle()" [attr.aria-expanded]="open()" aria-haspopup="dialog" [attr.aria-label]="label() + ', ' + display()">
+  <cs-icon name="calendar" [size]="16" />
+  <span class="value">
+    @if (value()) {
+      <span>{{ hijri() ? displayHijri() : display() }}</span>
+      <small>{{ hijri() ? display() : displayHijri() }}</small>
+    } @else {
+      <span class="placeholder">{{ placeholder() }}</span>
+    }
+  </span>
+  <cs-icon name="down" [size]="16" class="chev" />
+</button>
+@if (open()) {
+  <div class="pop" role="dialog" [attr.aria-label]="label()" (keydown.escape)="close($event)">
+    <header>
+      <button type="button" class="icon-btn" (click)="shift(-1)" [attr.aria-label]="'previous month'"><cs-icon [name]="rtl() ? 'right' : 'left'" /></button>
+      <div class="title" aria-live="polite">
+        <strong>{{ monthTitle() }}</strong>
+        <small>{{ hijriTitle() }}</small>
+      </div>
+      <button type="button" class="icon-btn" (click)="shift(1)" [attr.aria-label]="'next month'"><cs-icon [name]="rtl() ? 'left' : 'right'" /></button>
+    </header>
+    <div class="grid" role="grid" [attr.aria-labelledby]="id + '-title'" (keydown)="onKey($event)">
+      <div class="row head" role="row">
+        @for (w of weekdays(); track $index) {<span role="columnheader" class="wd">{{ w }}</span>}
+      </div>
+      @for (week of weeks(); track $index) {
+        <div class="row" role="row">
+          @for (d of week; track d.iso) {
+            <button type="button" role="gridcell" class="day" [attr.data-iso]="d.iso"
+              [class.out]="!d.inMonth" [class.today]="d.today" [attr.aria-selected]="d.iso === value()"
+              [disabled]="d.disabled" [tabindex]="d.iso === focus() ? 0 : -1" (click)="pick(d.iso)">
+              <span class="g">{{ d.day }}</span><span class="h">{{ d.hijri }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <footer>
+      <button type="button" class="btn ghost" (click)="pick(todayIso)" [disabled]="!!min() && todayIso < min()!">{{ rtl() ? 'اليوم' : 'Today' }}</button>
+    </footer>
+  </div>
+}

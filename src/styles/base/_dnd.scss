@@ -1,0 +1,36 @@
+// Drag and drop feedback outside components (the palette ghost and drop targets).
+.drag-ghost.drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--signer);
+  opacity: 0.95;
+}
+
+.pdfViewer .page.is-drop-target {
+  box-shadow: 0 0 0 3px var(--accent), 0 12px 30px -10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.signer-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--signer);
+  color: #fff;
+  font: 700 13px var(--font-ui);
+  box-shadow: 0 10px 24px -8px var(--signer);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.pdfViewer cs-field.is-assign-target {
+  outline: 3px dashed var(--accent);
+  outline-offset: 3px;
+  transform: scale(1.03);
+}

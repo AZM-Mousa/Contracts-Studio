@@ -1,0 +1,140 @@
+@use 'abstracts' as *;
+
+:host {
+  position: relative;
+  display: block;
+  min-height: 0;
+  background: var(--canvas);
+}
+
+.viewer-container {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  outline: none;
+  overscroll-behavior: contain;
+  scroll-padding-block: 24px;
+  -webkit-overflow-scrolling: touch;
+  // One finger pans in any direction; two-finger zoom is handled by the app (sharp re-render).
+  touch-action: pan-x pan-y;
+  direction: ltr;
+}
+
+// Room for the rulers (20px, see rulers.component.scss).
+:host(.with-rulers) .viewer-container { inset: 20px 0 0 20px; }
+
+// Phones keep every pixel for the page.
+@include mq-max(phone) {
+  :host(.with-rulers) .viewer-container { inset: 0; }
+  cs-rulers { display: none; }
+}
+
+/* pdf.js page look: soft paper on the canvas. */
+:host ::ng-deep .pdfViewer {
+  padding-block: 20px 120px;
+  .page {
+    margin: 0 auto 18px;
+    border: 0;
+    border-radius: 2px;
+    background: var(--paper);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08), 0 8px 24px -8px rgb(15 23 42 / 0.18);
+  }
+  .textLayer { z-index: 2; }
+  .textLayer .highlight {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: 2px;
+    &.selected { background: color-mix(in srgb, var(--accent) 70%, transparent); }
+  }
+}
+
+:host-context([data-theme='dark']) ::ng-deep .pdfViewer .page {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.04), 0 10px 30px -10px rgb(0 0 0 / 0.7);
+}
+
+:host-context([data-contrast='high']) ::ng-deep .pdfViewer .page {
+  outline: 2px solid var(--ink);
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(60% 50% at 50% 62%, color-mix(in srgb, var(--canvas) 85%, transparent), transparent 75%);
+  display: grid;
+  place-content: end center;
+  justify-items: center;
+  gap: 18px;
+  padding-bottom: 12vh;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  p { max-width: 34ch; margin: 0; font-size: 15px; font-weight: 500; color: var(--ink); text-shadow: 0 1px 12px var(--canvas); }
+}
+
+.empty-art {
+  position: relative;
+  width: 120px;
+  height: 130px;
+  span {
+    position: absolute;
+    width: 86px;
+    height: 112px;
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--line);
+    &:nth-child(1) { left: 0; top: 14px; transform: rotate(-8deg); }
+    &:nth-child(2) { left: 30px; top: 6px; transform: rotate(6deg); }
+    &:nth-child(3) {
+      left: 15px;
+      top: 0;
+      background:
+        linear-gradient(var(--line) 0 0) 14px 22px / 52px 4px no-repeat,
+        linear-gradient(var(--line) 0 0) 14px 34px / 40px 4px no-repeat,
+        linear-gradient(var(--line) 0 0) 14px 46px / 56px 4px no-repeat,
+        linear-gradient(color-mix(in srgb, var(--accent) 22%, transparent) 0 0) 14px 76px / 46px 18px no-repeat,
+        var(--surface);
+      animation: float 4s var(--ease) infinite;
+    }
+  }
+}
+
+@keyframes float {
+  50% { transform: translateY(-6px); }
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 12px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  border: 2px dashed var(--accent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  pointer-events: none;
+}

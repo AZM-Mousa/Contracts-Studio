@@ -1,0 +1,23 @@
+@use 'sass:map';
+@use 'variables' as v;
+
+/// Breakpoint width by name, e.g. bp(tablet).
+@function bp($name) {
+  @if not map.has-key(v.$breakpoints, $name) {
+    @error 'Unknown breakpoint `#{$name}`.';
+  }
+  @return map.get(v.$breakpoints, $name);
+}
+
+/// Stacking order by layer name, e.g. z(popover).
+@function z($layer) {
+  @if not map.has-key(v.$z-layers, $layer) {
+    @error 'Unknown z-layer `#{$layer}`.';
+  }
+  @return map.get(v.$z-layers, $layer);
+}
+
+/// A colour mixed with transparency, e.g. tint(var(--accent), 12%).
+@function tint($color, $amount) {
+  @return color-mix(in srgb, #{$color} $amount, transparent);
+}

@@ -1,0 +1,88 @@
+@use 'abstracts' as *;
+
+:host {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+  &:hover { border-color: var(--line-strong); }
+  &:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+}
+
+:host(.open) .trigger { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  &.placeholder { color: var(--muted); }
+}
+
+.chev {
+  color: var(--muted);
+  transition: transform 180ms var(--ease);
+}
+
+:host(.open) .chev { transform: rotate(180deg); }
+
+.dot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.list {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline: 0;
+  z-index: 60;
+  max-height: 260px;
+  margin: 0;
+  padding: 5px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+  animation: open 150ms var(--ease);
+}
+
+@keyframes open { from { transform: translateY(-4px); opacity: 0; } }
+
+li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  &.active { background: var(--chip); }
+  &[aria-selected='true'] { color: var(--accent); font-weight: 600; }
+  .text { flex: 1; display: grid; min-width: 0; }
+  small { color: var(--muted); font-size: 11.5px; font-weight: 400; }
+  .tick { color: var(--accent); }
+  @include touch { padding: 12px 10px; }
+}
+
+:host(.up) .list { top: auto; bottom: calc(100% + 6px); }

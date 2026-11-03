@@ -1,0 +1,38 @@
+// Design tokens as custom properties, so themes and accent colours switch at runtime.
+:root {
+  --accent: #4f46e5;
+  --accent-2: #ec4899;
+  --on-accent: #ffffff;
+  --gradient: linear-gradient(120deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
+  --font-ui: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Noto Sans Arabic', 'Tahoma', sans-serif;
+  --font-scale: 1;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --bg: #f6f7fb;
+  --canvas: #eceef4;
+  --panel: #ffffff;
+  --surface: #ffffff;
+  --chip: #eef0f5;
+  --ink: #111827;
+  --muted: #5b6475;
+  --line: #e3e6ee;
+  --line-strong: #c9cedb;
+  --field-bg: rgb(255 255 255 / 0.72);
+  --field-ink: #111827;
+  --guide: var(--accent-2);
+  --focus: color-mix(in srgb, var(--accent) 55%, transparent);
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --warning-ink: #b45309;
+  --on-strong: #ffffff;
+  --paper: #ffffff;
+  --scrim: rgb(15 23 42 / 0.45);
+  --scrim-soft: rgb(15 23 42 / 0.35);
+  /* Nafath's brand green, used only in the Nafath verification mock. */
+  --nafath: #00695c;
+  --success: #16a34a;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.08);
+  --shadow-md: 0 1px 2px rgb(15 23 42 / 0.06), 0 8px 24px -10px rgb(15 23 42 / 0.22);
+  --shadow-lg: 0 2px 6px rgb(15 23 42 / 0.06), 0 24px 48px -16px rgb(15 23 42 / 0.32);
+  color-scheme: light;
+}

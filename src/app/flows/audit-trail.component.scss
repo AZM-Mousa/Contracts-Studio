@@ -1,0 +1,16 @@
+@use 'abstracts' as *;
+
+:host { display: block; }
+h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; }
+.hash { display: grid; gap: 4px; margin: 0 0 14px; padding: 10px; border-radius: 10px; background: var(--chip); font-size: 11px; }
+.hash span { font-weight: 700; color: var(--muted); }
+.hash code { word-break: break-all; font-size: 11px; }
+.events { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+li { position: relative; display: flex; gap: 12px; padding: 0 0 14px; }
+li:not(:last-child)::before { content: ''; position: absolute; inset-inline-start: 5px; top: 14px; bottom: 0; width: 2px; background: var(--line); }
+.dot { width: 12px; height: 12px; margin-top: 3px; flex: none; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+li > div { display: grid; gap: 2px; min-width: 0; }
+strong { font-size: 13px; }
+small { color: var(--muted); font-size: 12px; }
+time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); font-size: 13px; }

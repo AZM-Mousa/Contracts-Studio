@@ -1,0 +1,8 @@
+// Global styles. Partials: abstracts (variables, functions, mixins) and base (tokens, themes, a11y, motion, reset, controls).
+@use 'styles/base/tokens';
+@use 'styles/base/themes';
+@use 'styles/base/a11y';
+@use 'styles/base/motion';
+@use 'styles/base/reset';
+@use 'styles/base/controls';
+@use 'styles/base/dnd';

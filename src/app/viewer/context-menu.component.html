@@ -1,0 +1,54 @@
+@if (at(); as at) {
+  <div #menu class="menu" role="menu" [attr.aria-label]="i18n.t('contextMenu')" [style.left.px]="pos().left" [style.top.px]="pos().top"
+    (keydown)="onKey($event)" (contextmenu)="$event.preventDefault()">
+    @if (!selected().length) {
+      <p class="label">{{ i18n.t('addHere') }}</p>
+      <div class="icons">
+        @for (type of quickAdd; track type) {
+          <button type="button" role="menuitem" class="icon-item" (click)="add(type)" [attr.aria-label]="i18n.field(type)" [title]="i18n.field(type)">
+            <cs-icon [name]="meta[type].icon" [size]="17" />
+          </button>
+        }
+      </div>
+      <hr />
+      <button type="button" role="menuitem" (click)="paste()" [disabled]="!store.clipboardCount()">
+        <cs-icon name="layers" [size]="16" />{{ i18n.t('paste') }}<kbd>{{ keys.paste }}</kbd>
+      </button>
+      <button type="button" role="menuitem" (click)="selectPage()" [disabled]="!store.byPage().get(at.page)?.length">
+        <cs-icon name="grid" [size]="16" />{{ i18n.t('selectAllPage') }}<kbd>{{ keys.all }}</kbd>
+      </button>
+    } @else {
+      <button type="button" role="menuitem" (click)="copy()"><cs-icon name="copy" [size]="16" />{{ i18n.t('copy') }}<kbd>{{ keys.copy }}</kbd></button>
+      <button type="button" role="menuitem" (click)="paste()" [disabled]="!store.clipboardCount()">
+        <cs-icon name="layers" [size]="16" />{{ i18n.t('paste') }}<kbd>{{ keys.paste }}</kbd>
+      </button>
+      <button type="button" role="menuitem" (click)="duplicate()"><cs-icon name="plus" [size]="16" />{{ i18n.t('duplicate') }}<kbd>{{ keys.duplicate }}</kbd></button>
+      <button type="button" role="menuitem" (click)="paint()" [disabled]="selected().length !== 1">
+        <cs-icon name="palette" [size]="16" />{{ i18n.t('formatPainter') }}
+      </button>
+      <button type="button" role="menuitem" (click)="toggleLock()"><cs-icon name="lock" [size]="16" />{{ i18n.t(locked() ? 'unlockField' : 'lockField') }}</button>
+      <hr />
+      <p class="label">{{ i18n.t('assignTo') }}</p>
+      <div class="signers">
+        @for (s of store.signers(); track s.id) {
+          <button type="button" role="menuitem" class="signer" [style.--signer]="s.color" (click)="assign(s.id)"
+            [attr.aria-current]="selected().every(f => f.signerId === s.id) || null">
+            <span class="dot"></span>{{ s.name }}
+          </button>
+        }
+      </div>
+      @if (selected().length > 1) {
+        <p class="label">{{ i18n.t('align') }}</p>
+        <div class="icons">
+          @for (a of aligns; track a.mode) {
+            <button type="button" role="menuitem" class="icon-item" (click)="align(a.mode)" [attr.aria-label]="a.mode" [title]="a.mode">
+              <cs-icon [name]="a.icon" [size]="17" />
+            </button>
+          }
+        </div>
+      }
+      <hr />
+      <button type="button" role="menuitem" class="danger" (click)="remove()"><cs-icon name="trash" [size]="16" />{{ i18n.t('delete') }}<kbd>Del</kbd></button>
+    }
+  </div>
+}

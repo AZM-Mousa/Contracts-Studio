@@ -1,0 +1,3 @@
+<cdk-virtual-scroll-viewport [itemSize]="itemHeight" class="list" role="listbox" [attr.aria-label]="i18n.t('thumbnails')">
+  <cs-thumb *cdkVirtualFor="let p of pages(); trackBy: track" [page]="p" (click)="go(p)" (keydown.enter)="go(p)" tabindex="0" />
+</cdk-virtual-scroll-viewport>

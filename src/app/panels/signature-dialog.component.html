@@ -1,0 +1,75 @@
+<dialog #dialog class="sheet" (close)="close()" (cancel)="close()" aria-labelledby="sig-title">
+  @if (field(); as f) {
+    <header>
+      <h2 id="sig-title">{{ title() }}</h2>
+      <button type="button" class="icon-btn" (click)="close()" [attr.aria-label]="i18n.t('close')"><cs-icon name="x" /></button>
+    </header>
+
+    @if (saved(); as s) {
+      <button type="button" class="saved" (click)="useSaved(s)">
+        <img [src]="s" alt="" /><span>{{ i18n.t('useSaved') }}</span><cs-icon name="check2" [size]="16" />
+      </button>
+    }
+
+    <div class="tabs" role="tablist">
+      @for (t of tabs(); track t) {
+        <button type="button" role="tab" [attr.aria-selected]="tab() === t" (click)="tab.set(t)">
+          <cs-icon [name]="t === 'type' ? 'text' : t === 'draw' ? 'pen' : 'upload'" [size]="15" />{{ tabLabel(t) }}
+        </button>
+      }
+    </div>
+
+    @if (tab() !== 'upload') {
+      <div class="inks" role="radiogroup" [attr.aria-label]="i18n.t('inkColor')">
+        @for (c of inks; track c) {
+          <button type="button" role="radio" class="ink" [style.background]="c" [attr.aria-checked]="ink() === c" (click)="ink.set(c)" [attr.aria-label]="c"></button>
+        }
+        <cs-color-picker class="ink-picker" [class.on]="!inks.includes(ink())" [value]="customInk()" (valueChange)="setCustomInk($event)"
+          [label]="i18n.t('customColor')" [swatches]="inkSwatches" />
+      </div>
+    }
+
+    <div class="stage" [class.tall]="tab() === 'type'">
+      @switch (tab()) {
+        @case ('type') {
+          <input class="typed-input" type="text" [value]="typed()" (input)="typed.set(value($event))" [attr.maxlength]="isInitials() ? 6 : 60"
+            [placeholder]="i18n.t('yourName')" [attr.aria-label]="i18n.t('yourName')" />
+          <div class="fonts" role="radiogroup" [attr.aria-label]="i18n.t('font')">
+            @for (font of fonts(); track font) {
+              <button type="button" role="radio" class="font" [attr.aria-checked]="typedFont() === font" (click)="typedFont.set(font)"
+                [style.font-family]="quote(font)" [style.color]="ink()">{{ typed() || i18n.t('yourName') }}</button>
+            }
+          </div>
+        }
+        @case ('draw') {
+          <canvas #pad class="pad" (pointerdown)="down($event)" [attr.aria-label]="i18n.t('draw')"></canvas>
+          <span class="baseline" aria-hidden="true">✕</span>
+          <div class="pad-tools">
+            <button type="button" class="icon-btn" (click)="undo()" [disabled]="!strokes().length" [attr.aria-label]="i18n.t('undo')"><cs-icon name="undo" /></button>
+            <button type="button" class="icon-btn" (click)="redo()" [disabled]="!undone().length" [attr.aria-label]="i18n.t('redo')"><cs-icon name="redo" /></button>
+            <button type="button" class="icon-btn" (click)="clear()" [disabled]="!strokes().length" [attr.aria-label]="i18n.t('clear')"><cs-icon name="trash" /></button>
+          </div>
+        }
+        @case ('upload') {
+          <label class="upload" [class.error]="uploadError()">
+            @if (uploaded(); as src) {<img [src]="src" alt="" />} @else {<cs-icon name="upload" [size]="26" />{{ i18n.t('uploadHint') }}}
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml" (change)="onFile($event)" />
+          </label>
+          @if (uploadError()) {<p class="err" role="alert">{{ i18n.t('uploadTooBig') }}</p>}
+        }
+      }
+    </div>
+
+    <footer>
+      @if (kind()) {
+        <label class="switch"><input type="checkbox" role="switch" [checked]="setDefault()" (change)="setDefault.set(checked($event))" /><span></span>{{ defaultLabel() }}</label>
+      }
+      @if (sameCount() > 1) {
+        <span class="applies">{{ i18n.t('appliesTo', { n: sameCount() }) }}</span>
+      }
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost" (click)="close()">{{ i18n.t('cancel') }}</button>
+      <button type="button" class="btn primary" [disabled]="!canApply()" (click)="apply()"><cs-icon name="check2" [size]="16" />{{ i18n.t('fill') }}</button>
+    </footer>
+  }
+</dialog>

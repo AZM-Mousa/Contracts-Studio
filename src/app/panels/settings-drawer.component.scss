@@ -1,0 +1,193 @@
+@use 'abstracts' as *;
+
+.drawer {
+  contain: layout paint;
+  isolation: isolate;
+  position: fixed;
+  /* Pinned to the window's edges: no dvh, so every browser gives it the full height. */
+  inset: 0 0 0 auto;
+  width: min(400px, 100vw);
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-inline-start: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  /* The panel is the one scroller (header sticks), so its content can never be cut short. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* No backdrop blur: blurring a live 3D scene can leave the panel unpainted on some GPUs. */
+  &::backdrop { background: var(--scrim-soft); }
+  &[open] { display: block; animation: slide 260ms var(--ease); }
+}
+
+:host-context([dir='rtl']) .drawer {
+  inset: 0 auto 0 0;
+  &[open] { animation-name: slide-rtl; }
+}
+
+@keyframes slide { from { transform: translateX(24px); opacity: 0; } }
+@keyframes slide-rtl { from { transform: translateX(-24px); opacity: 0; } }
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 10px;
+  border-bottom: 1px solid var(--line);
+  h2 { margin: 0; font-size: 17px; }
+}
+
+.body {
+  padding: 8px 20px 28px;
+}
+
+section {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  &:last-child { border-bottom: 0; }
+  &.two { display: grid; grid-template-columns: 1fr auto; gap: 16px; }
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+h4 {
+  margin: 14px 0 8px;
+  @include overline;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  h3 { margin: 0; }
+}
+
+.link {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: 600 12px var(--font-ui);
+  cursor: pointer;
+}
+
+.seg {
+  @include segmented(34px);
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid var(--panel);
+  background: linear-gradient(135deg, var(--c) 0 50%, var(--c2) 50% 100%);
+  box-shadow: 0 0 0 1px var(--line);
+  cursor: pointer;
+  transition: transform 150ms var(--ease);
+  &:hover { transform: scale(1.08); }
+  &[aria-checked='true'] { box-shadow: 0 0 0 2px var(--c); }
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 12px var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+  &[aria-checked='true'] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .preview {
+    display: grid;
+    gap: 3px;
+    width: 30px;
+    padding: 5px;
+    border-radius: 6px;
+    background: var(--paper);
+    i { height: 4px; border-radius: 2px; background: #64748b; }
+    i:last-child { width: 60%; background: #4f46e5; }
+  }
+  &.c-high .preview { background: var(--paper); outline: 2px solid #000; i { background: #000; } }
+  &.c-yellow .preview { background: #000; i { background: #ff0; } }
+  &.c-grayscale .preview i:last-child { background: #555; }
+}
+
+.toggles {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.keys {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  div { display: flex; justify-content: space-between; gap: 12px; }
+  dt { display: flex; gap: 4px; }
+  dd { margin: 0; color: var(--muted); text-align: end; }
+}
+
+.custom {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  &.on { border-style: solid; border-color: var(--accent); }
+}
+
+.custom-label {
+  flex: 1 0 100%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.picker {
+  flex: 1 1 120px;
+}
+
+.preview-pill {
+  margin-inline-start: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: var(--on-accent);
+  font-weight: 800;
+}
+
+.reset-btn { width: 100%; margin-top: -4; }
+.danger-zone { border-bottom: 0; }

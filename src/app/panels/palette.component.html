@@ -1,0 +1,32 @@
+<div class="signers" role="radiogroup" [attr.aria-label]="i18n.t('signer')">
+  @for (s of store.signers(); track s.id) {
+    <button type="button" role="radio" class="signer" [attr.aria-checked]="store.activeSignerId() === s.id"
+      [style.--signer]="s.color" (pointerdown)="startSignerDrag($event, s.id)" (keydown.enter)="pickSigner(s.id)" (keydown.space)="pickSigner(s.id)"
+      [title]="i18n.t('dragSignerHint')">
+      <span class="avatar">{{ initials(s.name) }}</span><span class="name">{{ s.name }}</span>
+    </button>
+  }
+</div>
+<p class="hint">{{ i18n.t('dragSignerHint') }}</p>
+<button type="button" class="detect" (click)="detect()" [class.busy]="detecting() !== null" [style.--done]="detecting() ?? 0"
+  [attr.aria-busy]="detecting() !== null">
+  <cs-icon name="sparkles" [size]="17" />
+  @if (detecting() === null) {
+    <span><b>{{ i18n.t('detectFields') }}</b><small>{{ i18n.t('detectHint') }}</small></span>
+  } @else {
+    <span><b>{{ i18n.t('detecting', { n: (detecting()! * 100).toFixed(0) }) }}</b><small>{{ i18n.t('detectStop') }}</small></span>
+  }
+</button>
+<p class="hint">{{ i18n.t('paletteHint') }}</p>
+@for (group of groups; track group.id) {
+  <h3 class="group-title">{{ i18n.group(group.id) }}</h3>
+  <div class="items">
+    @for (type of group.types; track type) {
+      <button type="button" class="item" [style.--signer]="signerColor()" (pointerdown)="startDrag($event, type)"
+        (keydown.enter)="add(type)" (keydown.space)="add(type)" [attr.aria-label]="i18n.field(type)">
+        <span class="ico"><cs-icon [name]="meta[type].icon" [size]="17" /></span>
+        <span class="lbl">{{ i18n.field(type) }}</span>
+      </button>
+    }
+  </div>
+}

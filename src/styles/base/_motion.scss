@@ -1,0 +1,40 @@
+// Theme switch: the new theme grows as a soft-edged circle from the pointer; the old one dims or brightens.
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 340ms; }
+
+@property --vt-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+html[data-vt='reveal']::view-transition-old(root) {
+  animation: vt-recede 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: var(--vt-x, 50%) var(--vt-y, 0%);
+}
+
+html[data-vt='reveal'][data-vt-to='dark']::view-transition-old(root) { animation-name: vt-dusk; }
+html[data-vt='reveal'][data-vt-to='light']::view-transition-old(root) { animation-name: vt-dawn; }
+
+html[data-vt='reveal']::view-transition-new(root) {
+  animation:
+    vt-reveal 900ms cubic-bezier(0.65, 0, 0.2, 1) both,
+    vt-settle 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: var(--vt-x, 50%) var(--vt-y, 0%);
+  mask-image: radial-gradient(circle at var(--vt-x, 50%) var(--vt-y, 0%), #000 calc(var(--vt-r) - 90px), transparent var(--vt-r));
+}
+
+html[data-vt='fade']::view-transition-old(root) { animation: vt-fade-out 360ms ease-out both; }
+html[data-vt='fade']::view-transition-new(root) { animation: vt-fade-in 360ms ease-out both; }
+
+@keyframes vt-reveal { from { --vt-r: 0px; } to { --vt-r: 170vmax; } }
+@keyframes vt-settle { from { scale: 1.015; } }
+@keyframes vt-recede { to { scale: 0.985; filter: brightness(0.92); } }
+@keyframes vt-dusk { to { scale: 0.975; filter: brightness(0.62) saturate(0.85); } }
+@keyframes vt-dawn { to { scale: 1.02; filter: brightness(1.25) saturate(1.1) blur(1px); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+
+@keyframes cs-pop-in {
+  from { transform: translateY(-4px) scale(0.98); opacity: 0; }
+}

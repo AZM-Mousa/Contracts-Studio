@@ -1,0 +1,223 @@
+<main class="flow" [attr.aria-label]="i18n.t('fContractProcess')">
+  <div class="flow-head">
+    <div>
+      <span class="eyebrow"><cs-icon name="upload" [size]="15" />{{ i18n.t('fCompanySide') }}</span>
+      <h1>{{ i18n.t('fUploadAndSendForSignature') }}</h1>
+    </div>
+    <button type="button" class="btn ghost" (click)="state.view.set(View.Studio)"><cs-icon name="pen" [size]="16" />{{ i18n.t('fBackToEditor') }}</button>
+  </div>
+
+  @if (env.status() === 'draft') {
+    <ol class="stepper" [attr.aria-label]="i18n.t('fSteps')">
+      @for (label of steps(); track $index) {
+        <li [class.done]="$index < step()" [class.current]="$index === step()">
+          <button type="button" (click)="go($index)" [disabled]="$index > step()" [attr.aria-current]="$index === step() ? 'step' : null">
+            <span class="dot">@if ($index < step()) {<cs-icon name="check2" [size]="14" />} @else {{{ $index + 1 }}}</span>
+            <span class="label">{{ label }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+
+    <section class="card step-body">
+      @switch (step()) {
+        @case (0) {
+          <h2>{{ i18n.t('fDocument') }}</h2>
+          <div class="doc-pick">
+            @if (busy()) {
+              <cs-loader [label]="i18n.t('fReadingTheDocument')" />
+            } @else if (engine.ready()) {
+              <div class="doc-card">
+                <span class="doc-icon"><cs-icon name="file" [size]="22" /></span>
+                <div>
+                  <strong>{{ engine.fileName() }}</strong>
+                  <span>{{ engine.pagesCount() }} {{ i18n.t('fPages') }} · {{ fields.fields().length }} {{ i18n.t('fFields') }}</span>
+                  @if (env.hash()) {<code [title]="env.hash()">SHA-256 {{ shortHash() }}</code>}
+                </div>
+                <label class="btn ghost file-btn">{{ i18n.t('fReplace') }}<input type="file" accept="application/pdf" (change)="upload($event)" /></label>
+              </div>
+            } @else {
+              <label class="drop">
+                <cs-icon name="upload" [size]="28" />
+                <strong>{{ i18n.t('fChooseTheMainDocument') }}</strong>
+                <span>PDF</span>
+                <input type="file" accept="application/pdf" (change)="upload($event)" />
+              </label>
+              <button type="button" class="btn ghost" (click)="useSample()"><cs-icon name="sparkles" [size]="16" />{{ i18n.t('fUseA40PageSample') }}</button>
+            }
+          </div>
+          <div class="grid2">
+            <label class="row"><span class="lbl">{{ i18n.t('fFileName') }} *</span>
+              <input type="text" [value]="env.settings().title" (input)="env.updateSettings({ title: text($event) })" /></label>
+            <label class="row"><span class="lbl">{{ i18n.t('fContractReference') }} *</span>
+              <input type="text" [value]="env.settings().reference" (input)="env.updateSettings({ reference: text($event) })" /></label>
+            <label class="row"><span class="lbl">{{ i18n.t('fGracePeriodToApproveDays') }}</span>
+              <input type="number" min="1" max="90" [value]="env.settings().graceDays" (change)="env.updateSettings({ graceDays: +text($event) })" /></label>
+            <label class="row span2"><span class="lbl">{{ i18n.t('fDescription') }}</span>
+              <textarea rows="2" [value]="env.settings().description" (input)="env.updateSettings({ description: text($event) })"></textarea></label>
+          </div>
+        }
+
+        @case (1) {
+          <div class="split-head">
+            <h2>{{ i18n.t('fRecipients') }}</h2>
+            <label class="switch"><input type="checkbox" role="switch" [checked]="env.settings().sequential" (change)="env.updateSettings({ sequential: checked($event) })" /><span></span>{{ i18n.t('fSendInOrder') }}</label>
+          </div>
+          <p class="muted">{{ env.settings().sequential ? i18n.t('fEachPersonIsInvitedAfter') : i18n.t('fEveryoneIsInvitedAtThe') }}</p>
+          <ul class="recipients">
+            @for (p of env.participants(); track p.id; let i = $index) {
+              <li class="recipient" [attr.data-id]="p.id" [class.dragging]="dragId() === p.id" [style.--signer]="p.color">
+                <button type="button" class="handle" (pointerdown)="dragStart($event, p.id)" [attr.aria-label]="i18n.t('fDragToReorder')"
+                  (keydown.arrowup)="env.move(p.id, -1)" (keydown.arrowdown)="env.move(p.id, 1)">
+                  @if (env.settings().sequential) {<span class="order">{{ i + 1 }}</span>}<cs-icon name="more" [size]="16" />
+                </button>
+                <div class="fields">
+                  <label class="row"><span class="lbl">{{ i18n.t('fName') }}</span>
+                    <input type="text" [value]="p.name" (input)="update(p, { name: text($event) })" [attr.aria-invalid]="!p.name.trim()" /></label>
+                  <label class="row"><span class="lbl">{{ i18n.t('fEmail') }}</span>
+                    <input type="email" [value]="p.email" (input)="update(p, { email: text($event) })" dir="ltr" /></label>
+                  <label class="row"><span class="lbl">{{ i18n.t('fMobile') }}</span>
+                    <input type="tel" [value]="p.mobile" (input)="update(p, { mobile: text($event) })" dir="ltr" /></label>
+                  <div class="row"><span class="lbl">{{ i18n.t('fRole') }}</span>
+                    <cs-select [options]="roles()" [value]="p.role" (valueChange)="update(p, { role: $event!, needsToSign: $event !== 'viewer' })" [label]="i18n.t('fRole')" /></div>
+                  <div class="row"><span class="lbl">{{ i18n.t('fVerification') }}</span>
+                    <cs-select [options]="verifications()" [value]="p.verification" (valueChange)="update(p, { verification: $event! })" [label]="i18n.t('fVerification')" /></div>
+                  <label class="row"><span class="lbl">{{ i18n.t('fMaxApprovalTimeHours') }}</span>
+                    <input type="number" min="1" max="720" [value]="p.timeLimitHours" (change)="update(p, { timeLimitHours: +text($event) })" /></label>
+                  <div class="toggles span3">
+                    <label class="switch"><input type="checkbox" role="switch" [checked]="p.timeReminder" (change)="update(p, { timeReminder: checked($event) })" /><span></span>{{ i18n.t('fRemindBeforeTimeRunsOut') }}</label>
+                    <label class="switch"><input type="checkbox" role="switch" [checked]="p.allowDelegation" (change)="update(p, { allowDelegation: checked($event) })" /><span></span>{{ i18n.t('fAllowDelegation') }}</label>
+                  </div>
+                </div>
+                <button type="button" class="icon-btn" (click)="env.removeParticipant(p.id)" [attr.aria-label]="i18n.t('fRemove')"><cs-icon name="trash" /></button>
+              </li>
+            }
+          </ul>
+          <button type="button" class="btn ghost" (click)="env.addParticipant()"><cs-icon name="plus" [size]="16" />{{ i18n.t('fAddRecipient') }}</button>
+        }
+
+        @case (2) {
+          <h2>{{ i18n.t('fSettings') }}</h2>
+          <div class="setting">
+            <label class="switch"><input type="checkbox" role="switch" [checked]="env.settings().expiryEnabled" (change)="env.updateSettings({ expiryEnabled: checked($event) })" /><span></span>
+              <strong>{{ i18n.t('fContractExpiryDate') }}</strong></label>
+            @if (env.settings().expiryEnabled) {
+              <div class="grid2">
+                <div class="row"><span class="lbl">{{ i18n.t('fExpiresOn') }}</span>
+                  <cs-datepicker [value]="env.settings().expiresAt" (valueChange)="env.updateSettings({ expiresAt: $event })" [min]="tomorrow" [label]="i18n.t('fExpiresOn')" /></div>
+                <div class="row"><span class="lbl">{{ i18n.t('fReminder') }}</span>
+                  <div class="seg">
+                    <button type="button" [attr.aria-pressed]="env.settings().reminderMethod === 'email'" (click)="env.updateSettings({ reminderMethod: ReminderMethod.Email })">{{ i18n.t('fEmail') }}</button>
+                    <button type="button" [attr.aria-pressed]="env.settings().reminderMethod === 'sms'" (click)="env.updateSettings({ reminderMethod: ReminderMethod.Sms })">SMS</button>
+                  </div></div>
+                <div class="row"><span class="lbl">{{ i18n.t('fRemind') }}</span>
+                  <cs-select [options]="frequencies()" [value]="env.settings().reminderFrequency" (valueChange)="env.updateSettings({ reminderFrequency: $event! })" [label]="i18n.t('fRemind')" /></div>
+                @if (env.settings().reminderFrequency === 'custom') {
+                  <label class="row"><span class="lbl">{{ i18n.t('fEveryDays') }}</span>
+                    <input type="number" min="1" max="365" [value]="env.settings().remindEveryDays" (change)="env.updateSettings({ remindEveryDays: +text($event) })" /></label>
+                }
+              </div>
+            }
+          </div>
+          <div class="setting">
+            <strong>{{ i18n.t('fSendASecurityCode') }}</strong>
+            <p class="muted">{{ i18n.t('fAskedBeforeTheDocumentOpens') }}</p>
+            <div class="chips">
+              @for (c of codes(); track c.id) {
+                <label class="chip-check"><input type="checkbox" [checked]="env.settings().securityCodes.includes(c.id)" (change)="toggleCode(c.id, checked($event))" /><span>{{ c.label }}</span></label>
+              }
+            </div>
+          </div>
+          <div class="setting">
+            <strong>{{ i18n.t('fSignatureProvider') }}</strong>
+            <div class="seg wide">
+              <button type="button" [attr.aria-pressed]="env.settings().provider === 'dga'" (click)="env.updateSettings({ provider: Provider.Dga })">{{ i18n.t('fDgaSaudiDigitalGovernmentAuthority') }}</button>
+              <button type="button" [attr.aria-pressed]="env.settings().provider === 'global'" (click)="env.updateSettings({ provider: Provider.Global })">{{ i18n.t('fGlobalDigitalSignature') }}</button>
+            </div>
+          </div>
+          <div class="setting">
+            <label class="switch"><input type="checkbox" role="switch" [checked]="env.settings().requireTerms" (change)="env.updateSettings({ requireTerms: checked($event) })" /><span></span>
+              <strong>{{ i18n.t('fSignersAcceptTheTermsFirst') }}</strong></label>
+          </div>
+          <label class="row"><span class="lbl">{{ i18n.t('fMessageToRecipients') }}</span>
+            <textarea rows="3" [value]="env.settings().message" (input)="env.updateSettings({ message: text($event) })"></textarea></label>
+        }
+
+        @case (3) {
+          <h2>{{ i18n.t('fPrepareTheDocument') }}</h2>
+          <p class="muted">{{ i18n.t('fPlaceFieldsForEachRecipient') }}</p>
+          <ul class="summary-list">
+            @for (p of env.participants(); track p.id) {
+              @let c = fieldsFor(p);
+              <li [style.--signer]="p.color">
+                <span class="avatar">{{ p.name.slice(0, 1) || '?' }}</span>
+                <span class="who"><strong>{{ p.name || '—' }}</strong><small>{{ roleLabel(p) }}</small></span>
+                <span class="count">{{ c.total }} {{ i18n.t('fFields') }} · {{ c.required }} {{ i18n.t('fRequired') }}</span>
+                @if (p.role === 'signer' && !c.total) {<span class="warn">{{ i18n.t('fNoFieldsYet') }}</span>}
+              </li>
+            }
+          </ul>
+          <button type="button" class="btn primary" (click)="openEditor()"><cs-icon name="pen" [size]="16" />{{ i18n.t('fOpenTheEditor') }}</button>
+        }
+
+        @case (4) {
+          <h2>{{ i18n.t('fReviewAndSend') }}</h2>
+          <div class="review">
+            <div><span class="lbl">{{ i18n.t('fDocument') }}</span><strong>{{ env.settings().title }}</strong><small>{{ env.settings().reference }} · {{ engine.pagesCount() }} {{ i18n.t('fPages') }}</small></div>
+            <div><span class="lbl">{{ i18n.t('fRecipients') }}</span><strong>{{ env.participants().length }}</strong><small>{{ env.settings().sequential ? i18n.t('fInOrder') : i18n.t('fAllAtOnce') }}</small></div>
+            <div><span class="lbl">{{ i18n.t('fFields2') }}</span><strong>{{ fields.fields().length }}</strong><small>{{ requiredCount() }} {{ i18n.t('fRequired') }}</small></div>
+            <div><span class="lbl">{{ i18n.t('fExpiry') }}</span><strong>{{ env.settings().expiryEnabled ? env.settings().expiresAt : i18n.t('fNone') }}</strong><small>{{ env.settings().provider === 'dga' ? 'DGA' : 'Global' }}</small></div>
+          </div>
+          <ul class="summary-list">
+            @for (p of env.participants(); track p.id; let i = $index) {
+              <li [style.--signer]="p.color">
+                @if (env.settings().sequential) {<span class="order">{{ i + 1 }}</span>}
+                <span class="avatar">{{ p.name.slice(0, 1) || '?' }}</span>
+                <span class="who"><strong>{{ p.name }}</strong><small>{{ p.email }}</small></span>
+                <span class="count">{{ channel(p.verification) }} · {{ p.timeLimitHours }}h</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      <footer class="step-foot">
+        <button type="button" class="btn ghost" (click)="go(step() - 1)" [disabled]="step() === 0">{{ i18n.t('fPrevious') }}</button>
+        @if (step() < 4) {
+          <button type="button" class="btn primary" (click)="next()" [disabled]="!canNext()">{{ i18n.t('fContinue') }}</button>
+        } @else {
+          <button type="button" class="btn primary" (click)="send()" [disabled]="!docValid() || !recipientsValid()"><cs-icon name="signature" [size]="16" />{{ i18n.t('fSendForSignature2') }}</button>
+        }
+      </footer>
+    </section>
+  } @else {
+    <section class="board">
+      <div class="card status-card" [class]="'card status-card ' + env.status()">
+        <div class="status-top">
+          <div>
+            <span class="lbl">{{ env.settings().reference }}</span>
+            <h2>{{ env.settings().title }}</h2>
+          </div>
+          <span class="badge">{{ env.status() === 'completed' ? i18n.t('fCompleted') : env.status() === 'rejected' ? i18n.t('fDeclined') : i18n.t('fInProgress') }}</span>
+        </div>
+        <div class="progress"><span [style.width.%]="(env.done() / env.actors()) * 100"></span></div>
+        <p class="muted">{{ env.done() }} / {{ env.actors() }} {{ i18n.t('fDone') }}</p>
+        <ol class="people">
+          @for (p of env.participants(); track p.id; let i = $index) {
+            <li [class]="'person ' + p.status" [style.--signer]="p.color">
+              <span class="avatar">{{ p.name.slice(0, 1) }}</span>
+              <span class="who"><strong>{{ p.name }}</strong><small>{{ statusLabel(p) }}@if (p.delegatedTo) { · {{ i18n.t('fFor') }} {{ p.delegatedTo }}}</small>
+                @if (p.reason) {<small class="reason">“{{ p.reason }}”</small>}</span>
+              <span class="pill">{{ channel(p.verification) }}</span>
+            </li>
+          }
+        </ol>
+        <div class="board-actions">
+          <button type="button" class="btn primary" (click)="openJourney()" [disabled]="env.status() !== 'sent'"><cs-icon name="signature" [size]="16" />{{ i18n.t('fOpenTheSignerJourney') }}</button>
+          <button type="button" class="btn ghost" (click)="env.reset(); go(4)">{{ i18n.t('fBackToDraft') }}</button>
+        </div>
+      </div>
+      <cs-audit-trail class="card" />
+    </section>
+  }
+</main>

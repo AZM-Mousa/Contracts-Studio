@@ -1,0 +1,18 @@
+<h3><cs-icon name="review" [size]="17" />{{ i18n.t('auditTrail') }}</h3>
+@if (env.hash()) {
+  <p class="hash"><span>SHA-256</span><code>{{ env.hash() }}</code></p>
+}
+<ol class="events">
+  @for (e of events(); track $index) {
+    <li>
+      <span class="dot"></span>
+      <div>
+        <strong>{{ e.actor }} · {{ e.action }}</strong>
+        @if (e.detail) {<small>{{ e.detail }}</small>}
+        <time [attr.datetime]="e.at.toISOString()">{{ format(e.at) }}</time>
+      </div>
+    </li>
+  } @empty {
+    <li class="empty">{{ i18n.t('nothingYet') }}</li>
+  }
+</ol>

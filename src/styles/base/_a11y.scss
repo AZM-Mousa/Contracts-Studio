@@ -1,0 +1,50 @@
+// Options from the accessibility panel (classes on <html>).
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion='system'] *,
+  :root[data-motion='system'] *::before,
+  :root[data-motion='system'] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:root.a11y-readable { --font-ui: 'Atkinson Hyperlegible', 'Verdana', 'Tahoma', sans-serif; }
+:root.a11y-spacing body { letter-spacing: 0.04em; word-spacing: 0.12em; line-height: 1.7; }
+:root.a11y-cursor, :root.a11y-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Cpath d='M4 2l15 9-7 1.5L9 20z' fill='%23000' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 4 2, auto !important;
+}
+:root.a11y-focus *:focus-visible { outline: 3px solid var(--ink) !important; outline-offset: 3px !important; }
+:root.a11y-links a { text-decoration: underline !important; text-underline-offset: 3px; }
+
+/* Reading guide: a clear band across the screen at the pointer, the rest slightly dimmed. */
+:root.a11y-guide body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0.35) 0,
+    rgb(0 0 0 / 0.35) calc(var(--guide-y, 50vh) - 26px),
+    transparent calc(var(--guide-y, 50vh) - 26px),
+    transparent calc(var(--guide-y, 50vh) + 26px),
+    rgb(0 0 0 / 0.35) calc(var(--guide-y, 50vh) + 26px)
+  );
+}
+
+:root[data-saturation='low'] body { filter: saturate(0.45); }
+:root[data-saturation='high'] body { filter: saturate(1.6); }
+
+/* With a strong focus outline, the selected field gets a bold high-contrast frame too. */
+:root.a11y-focus cs-field.is-selected { outline: 3px solid var(--ink) !important; outline-offset: 3px; }
